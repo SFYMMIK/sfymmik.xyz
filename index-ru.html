@@ -34,28 +34,31 @@
   var lang = (navigator.language || "").toLowerCase();
   var langs = navigator.languages || [];
 
-  function hasPrefix(prefix) {
-    if (lang.indexOf(prefix) === 0) return true;
-    for (var i = 0; i < langs.length; i++) {
-      var l = (langs[i] || "").toLowerCase();
-      if (l.indexOf(prefix) === 0) return true;
+  function hasPrefix(prefixes) {
+    for (var p = 0; p < prefixes.length; p++) {
+      var pref = prefixes[p];
+      if (lang.indexOf(pref) === 0) return true;
+      for (var i = 0; i < langs.length; i++) {
+        var l = (langs[i] || "").toLowerCase();
+        if (l.indexOf(pref) === 0) return true;
+      }
     }
     return false;
   }
 
-  var isPL = hasPrefix("pl");
-  var isRU = hasPrefix("ru");
+  var isPL = hasPrefix(["pl"]);
+  var isRU = hasPrefix(["ru", "uk", "be"]);
 
   if (isPL) {
     location.replace("index-pl.html");
   } else if (!isRU) {
     location.replace("index.html");
   }
-  // RU users stay on index-ru.html
+  // RU / UA / BY stay on index-ru.html
 })();
   </script>
 
-  <script src="js/rpc.js" defer></script>
+  <script src="js/rpc-ru.js" defer></script>
 </head>
 
 <body id="page">
@@ -83,7 +86,7 @@
 
     <h1>Основная информация:</h1>
     <h2>Местоимения: He / Him</h2>
-    <h2><a href="https://en.wikipedia.org/wiki/Asexuality">Асексуален</a></h2>
+    <h2><a href="Асексуальность">Асексуален</a></h2>
 
     <div class="rpc-card" id="rpc">
       <div class="rpc-top">

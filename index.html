@@ -33,24 +33,27 @@
   var lang = (navigator.language || "").toLowerCase();
   var langs = navigator.languages || [];
 
-  function hasPrefix(prefix) {
-    if (lang.indexOf(prefix) === 0) return true;
-    for (var i = 0; i < langs.length; i++) {
-      var l = (langs[i] || "").toLowerCase();
-      if (l.indexOf(prefix) === 0) return true;
+  function hasPrefix(prefixes) {
+    for (var p = 0; p < prefixes.length; p++) {
+      var pref = prefixes[p];
+      if (lang.indexOf(pref) === 0) return true;
+      for (var i = 0; i < langs.length; i++) {
+        var l = (langs[i] || "").toLowerCase();
+        if (l.indexOf(pref) === 0) return true;
+      }
     }
     return false;
   }
 
-  var isPL = hasPrefix("pl");
-  var isRU = hasPrefix("ru");
+  var isPL = hasPrefix(["pl"]);
+  var isRU = hasPrefix(["ru", "uk", "be"]);
 
   if (isPL) {
     location.replace("index-pl.html");
   } else if (isRU) {
     location.replace("index-ru.html");
   }
-  // otherwise stay on index.html (EN)
+  // EN stays on index.html
 })();
   </script>
   <script src="js/rpc.js" defer></script>
