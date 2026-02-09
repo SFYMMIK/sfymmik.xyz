@@ -29,16 +29,29 @@
     document.body.classList.add("loaded");
   });
 
-  (function () {
-    const lang = (navigator.language || "").toLowerCase();
-    const langs = (navigator.languages || []).map(l => (l || "").toLowerCase());
-    const isPL = lang.startsWith("pl") || langs.some(l => l.startsWith("pl"));
+(function () {
+  var lang = (navigator.language || "").toLowerCase();
+  var langs = navigator.languages || [];
 
-    if (isPL) {
-      // if your browser language is set to PL and you are here -> redirect to PL
-      location.replace("index-pl.html");
+  function hasPrefix(prefix) {
+    if (lang.indexOf(prefix) === 0) return true;
+    for (var i = 0; i < langs.length; i++) {
+      var l = (langs[i] || "").toLowerCase();
+      if (l.indexOf(prefix) === 0) return true;
     }
-  })();
+    return false;
+  }
+
+  var isPL = hasPrefix("pl");
+  var isRU = hasPrefix("ru");
+
+  if (isPL) {
+    location.replace("index-pl.html");
+  } else if (isRU) {
+    location.replace("index-ru.html");
+  }
+  // otherwise stay on index.html (EN)
+})();
   </script>
   <script src="js/rpc.js" defer></script>
 </head>
