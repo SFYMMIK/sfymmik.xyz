@@ -148,16 +148,32 @@
     </div>
     <p>Jeżeli podobają ci się moje projekty/strona internetowa możesz wspomnieć moją stronę poprzez mój guzik 88×31, tym kawałkiem kodu html:</p>
       <pre><code>
-        &lt;a href="https://sfymmik.xyz/"&gt;
-          &lt;img src="https://sfymmik.xyz/images/button.bmp/" alt="https://sfymmik.xyz/" title="SfymmiK's Webpage" /&gt;
-        &lt;/a&gt;
+&lt;a href="https://sfymmik.xyz/"&gt;
+  &lt;img
+    src="https://sfymmik.xyz/images/button.png"
+    alt="SfymmiK 88x31 button"
+    title="SfymmiK&#39;s Webpage"
+    width="88"
+    height="31"
+    style="
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-optimize-contrast;
+      -ms-interpolation-mode: nearest-neighbor;
+      display: block;
+    "
+  /&gt;
+&lt;/a&gt;
       </code></pre>
+    <p>wiem że to dużo CSS jak na zwykły guzik, ale jednak powinien wyglądać ładnie spixelowany oraz ostre pixele</p>
   </main>
   <footer>
     <hr id="line-footer" />
     <div class="badges">
       <a href="https://www.linux.org/pages/download/"><img src="images/madeon_linux.gif" alt="Linux" width="88" height="31"></a>
       <a href="https://archlinux.org"><img src="images/arch-badge.png" alt="Arch Linux" width="88" height="31"></a>
+      <a href="https://sfymmik.xyz/"><img src="images/button.png" alt="SfymmiK" width="88" height="31"></a>
       <a href="https://gentoo.org"><img src="images/gentoo-badge.png" alt="Gentoo" width="88" height="31"></a>
       <a href="https://freebsd.org"><img src="images/freebsd-badge.png" alt="FreeBSD" width="88" height="31"></a>
     </div>
