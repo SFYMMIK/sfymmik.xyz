@@ -470,3 +470,21 @@ width: auto;
 .spacer-lg {
   height: 32px;
 }
+
+/* make the <pre> and <code> NOT overflow. */
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: pre;
+  padding: 12px;
+  border-radius: 8px;
+  background: #0f0f0f;
+}
+
+code {
+  display: block;
+  min-width: fit-content;
+  font-family: monospace;
+  font-size: 0.9rem;
+}
