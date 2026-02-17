@@ -1,4 +1,4 @@
-# This repository is a SOURCE CODE of my website, while sometimes it will be the same as my existing site sometimes it might not be.
+# This repository is the SOURCE CODE of my website.
 
 # Main URL (Cloudflare)
 - https://sfymmik.xyz/
