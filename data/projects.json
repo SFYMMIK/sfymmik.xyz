@@ -1,0 +1,40 @@
+{
+  "projects": [
+    {
+      "title": "LazerScope",
+      "href": "https://lazer.sfymmik.xyz/",
+      "tags": ["HTML/CSS/JS/WebGL2"],
+      "desc": {
+        "en": "Vector oscilloscope simulation in the browser with a hardware-ish feel.",
+        "pl": "Symulacja oscyloskopu wektorowego w przeglądarce — klimat jak sprzęt.",
+        "ru": "Векторный осциллограф в браузере с ощущением «железа»."
+      },
+      "foot": {"en": "Open →", "pl": "Otwórz →", "ru": "Открыть →"},
+      "size": "span2"
+    },
+    {
+      "title": "My Forgejo",
+      "href": "https://git.sfymmik.xyz/SfymmiK",
+      "tags": ["Self-hosted", " Git"],
+      "desc": {
+        "en": "Primary place where I push and iterate fast. Mirrors exist elsewhere.",
+        "pl": "Główne miejsce, gdzie wrzucam i rozwijam projekty. Reszta to serwery lustrzane.",
+        "ru": "Основное место, где я быстро пушу и развиваю проекты. Остальное — зеркала."
+      },
+      "foot": {"en": "Browse repos →", "pl": "Repozytoria →", "ru": "Репозитории →"},
+      "size": "normal"
+    },
+    {
+      "title": "sfymmik.xyz",
+      "href": "https://sfymmik.xyz",
+      "tags": ["HTML/CSS/JS"],
+      "desc": {
+        "en": "This site — a living experiment in aesthetic + speed + personality.",
+        "pl": "Ta strona — żywy eksperyment: estetyka + szybkość + charakter.",
+        "ru": "Этот сайт — живой эксперимент: эстетика + скорость + характер."
+      },
+      "foot": {"en": "You’re here →", "pl": "Tu jesteś →", "ru": "Вы здесь →"},
+      "size": "wide"
+    }
+  ]
+}

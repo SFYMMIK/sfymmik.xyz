@@ -1,208 +1,236 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="author" content="Szymon Grajner (SfymmiK)">
-  <meta property="og:description" content="SfymmiK – 15 y/o programmer from Poland, into Unix-like OS, low-level experiments, and web dev.">
-  <meta name="keywords" content="sfymmik,SfymmiK,SFYMMIK,Sfymmik">
-  <meta property="og:url" content="https://sfymmik.xyz">
-  <meta property="og:site_name" content="SfymmiK's Webpage'">
-  <meta name="referrer" content="no-referrer">
-  <meta name="og:title" content="SfymmiK's Webpage">
-  <meta name="title" content="SfymmiK's Webpage">
-  <meta property="og:image" content="https://sfymmik.xyz/images/pfp.jpg">
+  <meta name="author" content="Szymon Grajner (SfymmiK)" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <link rel="stylesheet" href="css/styles.css" />
-  <link rel="icon" type="image/x-icon" href="images/pfp.jpg">
+
   <title>SfymmiK's Webpage</title>
-  <meta http-equiv="Content-Security-Policy"
-  content="
-    default-src 'self';
-    script-src 'self' 'unsafe-inline';
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' https: data:;
-    connect-src 'self' https://api.lanyard.rest;
-  ">
+  <meta name="description" content="SfymmiK — build & break. Low-level experiments, web dev, self-hosting." />
+  <meta name="keywords" content="sfymmik,SfymmiK,linux,arch,freebsd,gentoo,programming,webdev,osdev" />
 
-  <script>
-  window.addEventListener("load", () => {
-    document.body.classList.add("loaded");
-  });
+  <meta property="og:title" content="SfymmiK's Webpage" />
+  <meta property="og:description" content="build & break. Low-level experiments, web dev, self-hosting." />
+  <meta property="og:site_name" content="SfymmiK" />
+  <meta property="og:type" content="website" />
 
-(function () {
-  var lang = (navigator.language || "").toLowerCase();
-  var langs = navigator.languages || [];
-
-  function hasPrefix(prefixes) {
-    for (var p = 0; p < prefixes.length; p++) {
-      var pref = prefixes[p];
-      if (lang.indexOf(pref) === 0) return true;
-      for (var i = 0; i < langs.length; i++) {
-        var l = (langs[i] || "").toLowerCase();
-        if (l.indexOf(pref) === 0) return true;
-      }
-    }
-    return false;
-  }
-
-  var isPL = hasPrefix(["pl"]);
-  var isRU = hasPrefix(["ru", "uk", "be"]);
-
-  if (isPL) {
-    location.replace("index-pl.html");
-  } else if (isRU) {
-    location.replace("index-ru.html");
-  }
-  // EN stays on index.html
-})();
-  </script>
-  <script src="js/rpc.js" defer></script>
-  <script src="js/quotes.js" defer></script>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" href="https://sfymmik.xyz/images/pfp.jpg" />
 </head>
-<body id="page">
-  <main class="content">
-    <header class="up wrap">
-      <div class="avatar-wrap">
-        <img class="avatar" src="images/pfp.jpg" max-width="256" max-height="256" loading="lazy" />
-      </div>
-      <h1 style="color: #7928ca;">SfymmiK</h1>
-      <nav class="linki">
-        <a class="upper-buttons" href="https://github.com/SFYMMIK">GitHub (Mirror for git.sfymmik.xyz)</a>
-        <a class="upper-buttons" href="https://codeberg.org/SfymmiK">Codeberg</a>
-        <a class="upper-buttons" href="https://git.sfymmik.xyz/SfymmiK">my own git instance</a>
-        <a class="upper-buttons" href="https://www.youtube.com/@SFYMMIK">YouTube</a>
-        <a class="upper-buttons" onclick="alert('sfymmik')">Discord(user)</a>
-        <a class="upper-buttons" href="https://steamcommunity.com/id/JustSfymmiK/">Steam</a>
-        <a class="upper-buttons" href="https://namemc.com/profile/a7ef9121-81ed-4291-b4d6-cfc1105bcb5a">Minecraft (namemc)</a>
-        <a class="upper-buttons" href="https://stats.fm/sfymmik">Spotify (stats.fm)</a>
-      </nav>
-    </header>
-    <hr id="line" />
-    <h1>Basic Info:</h1>
-    <h2>Pronouns: He/Him</h2>
-    <h2><a href="https://en.wikipedia.org/wiki/Asexuality">Asexual</a></h2>
-    
-    <p>(EXPERIMENTAL) quotes</p>
-<p id="quoteText"></p>
-<footer id="quoteAuthor"></footer>
-<button class="upper-buttons" style="color:#000" id="newQuoteBtn" type="button">new quote</button>
 
-    <div class="rpc-card" id="rpc">
-      <div class="rpc-top">
-        <div class="rpc-profile">
-          <img class="rpc-avatar" id="rpcAvatar" alt="Avatar">
-          <div class="rpc-who">
-            <div class="rpc-title">(Discord) Activity</div>
-            <div class="rpc-name" id="rpcName">—</div>
-          </div>
+<body>
+  <div class="shell">
+    <!-- Sidebar -->
+    <aside class="side">
+      <div class="brand">
+        <div class="pfpWrap">
+          <img class="pfp" src="images/pfp.jpg" alt="SfymmiK profile picture" />
         </div>
-        <div class="rpc-pill">
-          <span class="rpc-dot" id="rpcDot"></span>
-          <span class="rpc-status-text" id="rpcStatusText">Connecting…</span>
-        </div>
-      </div>
-      <div class="rpc-block">
-        <div class="rpc-label">Playing</div>
-        <div class="rpc-line">
-          <img class="rpc-icon" id="gameIcon" alt="" hidden>
-          <div>
-            <div class="rpc-value" id="rpcGame">—</div>
-            <div class="rpc-sub" id="rpcDetails">—</div>
-          </div>
+        <div class="brandText">
+          <div class="brandName">SfymmiK</div>
+          <div class="brandTag">build &amp; break</div>
         </div>
       </div>
-      <div class="rpc-sep"></div>
-      <div class="rpc-block spotify">
-        <div class="rpc-label">(Spotify) Listening to ,right in this moment</div>
-        <div class="rpc-line">
-          <img class="rpc-cover" id="spCover" alt="" hidden>
-          <div>
-            <div class="rpc-value" id="spTrack">—</div>
-            <div class="rpc-sub" id="spArtist">—</div>
-            <div class="sp-actions">
-              <button class="sp-copy-btn" id="copySpotifyBtn" disabled>Copy Spotify link</button>
-              <span class="sp-copy-status" id="copySpotifyStatus"></span>
+
+      <nav class="nav">
+        <a class="navLink" href="#about">About</a>
+        <a class="navLink" href="#projects">Projects</a>
+        <a class="navLink" href="#you">Me</a>
+        <a class="navLink" href="#live">Live</a>
+        <a class="navLink" href="#friends">Friends</a>
+      </nav>
+
+      <div class="links">
+        <a class="pill" href="https://github.com/SFYMMIK" target="_blank" rel="noreferrer">GitHub</a>
+        <a class="pill" href="https://codeberg.org/SFYMMIK" target="_blank" rel="noreferrer">Codeberg</a>
+        <a class="pill" href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">Forgejo</a>
+        <a class="pill" href="mailto:contact@sfymmik.xyz">Email</a>
+      </div>
+
+      <section class="rpcCard" aria-label="Discord presence">
+        <div class="rpcTop">
+          <span class="dot" id="rpcDot" aria-hidden="true"></span>
+          <span class="rpcStatus" id="rpcStatusText">Loading…</span>
+        </div>
+
+        <div class="rpcUser">
+          <img id="rpcAvatar" class="rpcAvatar" alt="Discord avatar" />
+          <div class="rpcUserText">
+            <div id="rpcName" class="rpcName">—</div>
+            <div class="rpcSub" id="rpcGame">—</div>
+          </div>
+          <img id="gameIcon" class="rpcGameIcon" alt="" />
+        </div>
+
+        <div class="rpcLines">
+          <div id="rpcDetails" class="rpcDetails">—</div>
+        </div>
+
+        <div id="spotifyBlock">
+          <div class="spRow">
+            <img id="spCover" class="spCover" alt="Spotify cover" />
+            <div class="spText">
+              <div id="spTrack" class="spTrack">—</div>
+              <div id="spArtist" class="spArtist">—</div>
             </div>
           </div>
+
+          <button class="pill pillBtn" id="copySpotifyBtn" type="button">
+            Copy Song Link
+          </button>
+          <div class="miniStatus" id="copySpotifyStatus" aria-live="polite"></div>
         </div>
-      </div>
-    </div>
-    <hr id="line" />
-    <h2>I'm a 15 year old programmer, and of course I'am also a Unix-Like Operating Systems enjoyer • building &amp breaking things</h2>
-    <h2>I mainly work on web development and low-level experiments, often sharing my projects for others to explore</h2>
-    <h2>I use Arch/MX Linux (couldn't imagine working anywhere else)</h2>
-    <h2>And I also play some games except just code, like:</h2>
-    <ul>
-      <li><a href="https://store.steampowered.com/app/730/CounterStrike_2/">Counter-Strike 2</a></li>
-      <li><a href="https://www.minecraft.net/">Minecraft</a></li>
-      <li><a href="https://store.steampowered.com/app/3164500/Schedule_I/">Schedule 1</a></li>
-      <li><a href="https://osu.ppy.sh/">Osu (Lazer)</a></li>
-    </ul>
-    <h2>Some of my current work includes:</h2>
-    <ul>
-      <li><a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz">sfymmik.xyz</a></li>
-      <li><a href="https://github.com/SFYMMIK/web.sfymmik">web.sfymmik</a></li>
-      <li><a href="https://github.com/SFYMMIK/Dotfiles">Dotfiles</a></li>
-      <li><a href="https://github.com/SFYMMIK/sp3_code">sp3_code</a></li>
-    </ul>
-    <div class="spacer"></div>
-    <div id="fieldset-ppl-pos">
-      <fieldset id="fieldset-ppl" style="max-width: 400px;">
-        <legend style="font-size: 30px;">Friends / people i know</legend>
-        <a class="badges" href="https://maydo.uk">
-          <img src="images/maydo.png" alt="Maydo.uk" width="88" height="31">
-        </a>
-      </fieldset>
-    </div>
-      <p>If you like my work/website you can also mention my website via 88×31 button of mine, with this piece of html code:</p>
-      <pre><code>
-&lt;a href="https://sfymmik.xyz/"&gt;
-  &lt;img
-    src="https://sfymmik.xyz/images/button.png"
-    alt="SfymmiK 88x31 button"
-    title="SfymmiK&#39;s Webpage"
-    width="88"
-    height="31"
-    style="
-      image-rendering: pixelated;
-      image-rendering: crisp-edges;
-      image-rendering: -moz-crisp-edges;
-      image-rendering: -webkit-optimize-contrast;
-      -ms-interpolation-mode: nearest-neighbor;
-      display: block;
-    "
-  /&gt;
-&lt;/a&gt;
-      </code></pre>
-      <p>i know its a lot of css there for a button but it should look nicely pixelated and crisp.</p>
-  </main>
-  <footer>
-    <hr id="line-footer" />
-    <div class="badges">
-      <a href="https://www.linux.org/pages/download/"><img src="images/madeon_linux.gif" alt="Linux" width="88" height="31"></a>
-      <a href="https://archlinux.org"><img src="images/arch-badge.png" alt="Arch Linux" width="88" height="31"></a>
-      <a href="https://sfymmik.xyz/"><img src="images/button.png" alt="SfymmiK" width="88" height="31"></a>
-      <a href="https://gentoo.org"><img src="images/gentoo-badge.png" alt="Gentoo" width="88" height="31"></a>
-      <a href="https://freebsd.org"><img src="images/freebsd-badge.png" alt="FreeBSD" width="88" height="31"></a>
-    </div>
-    <div class="spacer"></div>
-    <a href="https://ko-fi.com/sfymmik/tip"><img id="kofi" src="images/kofi.jpg" /></a>
-    <div class="spacer-lg"></div>
-    <img src="images/linux.png" alt="Linux" />
-    <img src="images/thinkpad.png" alt="IBM ThinkPad" />
-    <div class="spacer"></div>
-    <p class="footer-text">
-      Made By Szymon Grajner (SfymmiK)
-      <a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz">
-        <img id="github-svg" src="images/github-svg.svg">
-      </a>
-    </p>
-    <div class="spacer"></div>
-    <p class="footer-text">
-      Licensed under the
-      <a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz/raw/branch/main/LICENSE">Apache 2.0 License</a>
-    </p>
-    <div class="spacer"></div>
-  </footer>
+      </section>
+      <div id="spacer"></div>
+      <footer class="sideFoot">
+        <span>© <span id="year"></span> SfymmiK</span>
+      </footer>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="heroText">
+          <h1>build &amp; break</h1>
+          <p>
+            Low-level experiments, web dev, self-hosting, and whatever I’m obsessed with this week.
+          </p>
+
+          <div class="heroActions">
+            <a class="pill pillBig" href="#projects">View projects</a>
+            <a class="pill pillBig" href="#me">Me</a>
+          </div>
+        </div>
+
+        <div class="heroTiles">
+          <div class="tile">
+            <div class="tileTitle">Now</div>
+            <div class="tileBody">C, Java, Linux, Web-Dev, and random experiments.</div>
+          </div>
+          <div class="tile">
+            <div class="tileTitle">Self-hosted</div>
+            <div class="tileBody">
+              Forgejo: <a href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">@SfymmiK</a>
+            </div>
+          </div>
+          <div class="tile">
+            <div class="tileTitle">OS Stack</div>
+            <div class="tileBody">Arch / Gentoo / MX</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- About -->
+      <section class="section" id="about">
+        <div class="sectionHead">
+          <h2>About</h2>
+          <p>Turning curiosity into code, one broken project at a time.</p>
+        </div>
+
+        <div class="aboutGrid">
+          <div class="card">
+            <h3>Who am I?</h3>
+            <p>
+              I’m Szymon (SfymmiK). I'am a 16 year old Programmer from Poland, i love experimenting with low-level code and websites pushing them to their limits.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Basic Info:</h3>
+            <p>
+              Pronouns: He/Him<br/>
+              <a href="https://en.wikipedia.org/wiki/Asexuality" style="text-decoration: underline;">Asexual.</a><br/>
+              Still learning life.
+            </p>
+          </div>
+          <div class="card">
+            <h3>Where am I?</h3>
+            <p>
+              Poland • Online: on Discord and my own Forgejo instance.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Projects -->
+      <section class="section" id="projects">
+        <div class="sectionHead">
+          <h2>Projects</h2>
+        </div>
+
+        <div class="bento" id="projectsGrid" aria-live="polite">
+          <div class="card">Loading projects…</div>
+        </div>
+      </section>
+
+      <section class="section" id="me">
+        <div class="sectionHead">
+          <h2>Me</h2>
+          <p>Quick links that represent “Me” online.</p>
+        </div>
+
+        <div class="meGrid">
+          <a class="card linkCard" href="https://sfymmik.xyz" target="_blank" rel="noreferrer">
+            <h3>Website</h3>
+            <p>sfymmik.xyz</p>
+          </a>
+          <a class="card linkCard" href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">
+            <h3>Forgejo</h3>
+            <p>@SfymmiK on my own instance</p>
+          </a>
+          <a class="card linkCard" href="https://github.com/SFYMMIK" target="_blank" rel="noreferrer">
+            <h3>GitHub</h3>
+            <p>@SFYMMIK</p>
+          </a>
+          <a class="card linkCard" href="https://codeberg.org/SfymmiK" target="_blank" rel="noreferrer">
+            <h3>Codeberg</h3>
+            <p>@SfymmiK</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Live -->
+      <section class="section" id="live">
+        <div class="sectionHead">
+          <p>Presence:</p>
+        </div>
+
+          <div class="card">
+            <h3>Status</h3>
+            <p class="muted">
+              Discord + Spotify are shown in the sidebar. (Powered by Lanyard.)
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Friends -->
+      <section class="section" id="friends">
+        <div class="sectionHead">
+          <h2>Friends</h2>
+          <p>People / links I want to mention.</p>
+        </div>
+
+        <div class="friendsGrid" id="friendsGrid">
+          <a class="pill" href="https://maydo.uk">Maydo</a>
+          <a class="pill" href="https://sdgscryv.xyz/">Seppe(Scryv)</a>
+        </div>
+      </section>
+      <div id="spacer"></div>
+      <footer class="mainFoot">
+        <div class="muted">
+          Built with plain HTML/CSS/JS. Hosted anywhere.
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+
+  <script src="js/projects.js" defer></script>
+  <script src="js/rpc.js" defer></script>
 </body>
 </html>
