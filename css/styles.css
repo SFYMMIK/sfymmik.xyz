@@ -38,13 +38,18 @@ html{
 
 body{
   margin:0;
-  font-family: "IBM BIOS", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
   color: var(--ink);
 
   /* let html paint the background; prevents bottom seam / mismatch */
   background: transparent;
 
   overflow-x:hidden;
+}
+
+/* Keep the retro font for headings / accents */
+h1,h2,h3,.brandName,.kicker{
+  font-family: "IBM BIOS", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .bg{
@@ -67,6 +72,17 @@ body{
 
 a{ color: inherit; text-decoration:none; }
 a:hover{ text-decoration: underline; text-underline-offset: 3px; }
+
+/* Card links (so the whole card is clickable without underlines) */
+.cardLink{ display:block; text-decoration:none; }
+.cardLink:hover{ text-decoration:none; }
+.cardLink:focus-visible{ outline: 2px solid rgba(124,58,237,.55); outline-offset: 4px; border-radius: var(--r2); }
+
+/* Slight lift on hover for clickable cards */
+.cardLink .card{ transition: transform .16s ease, border-color .16s ease, background .16s ease; }
+.cardLink:hover .card{ transform: translateY(-2px); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.06); }
+
+
 
 /* ============================
    LAYOUT
@@ -114,7 +130,7 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   object-fit: cover;
 }
 .brandName{ font-size: 18px; letter-spacing:.2px; }
-.brandSub{ font-size: 12px; color: var(--muted); margin-top:2px; }
+.brandTag{ font-size: 12px; color: var(--muted); margin-top:2px; }
 
 /* Nav (HTML uses .nav + .navLink) */
 .nav{
@@ -211,7 +227,10 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
   padding: 18px;
   border-radius: calc(var(--r2) + 6px);
   border: 1px solid rgba(255,255,255,.10);
-  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+  background:
+    radial-gradient(900px 500px at 20% 0%, rgba(124,58,237,.20), transparent 60%),
+    radial-gradient(900px 500px at 90% 10%, rgba(34,211,238,.14), transparent 62%),
+    linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
   box-shadow: var(--shadow);
 }
 
@@ -222,33 +241,49 @@ h1{
   line-height: 1.05;
   letter-spacing: .2px;
 }
+
+.heroText p{ color: var(--muted); line-height: 1.55; max-width: 62ch; }
+
+.heroActions{ display:flex; flex-wrap:wrap; gap:10px; margin-top: 14px; }
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.10);
+  color: var(--ink);
+  text-decoration:none !important;
+  font-size: 13px;
+  letter-spacing: .1px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.25);
+  transition: transform .16s ease, background .16s ease, border-color .16s ease;
+}
+.btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.16); }
+.btn:focus-visible{ outline: 2px solid rgba(124,58,237,.60); outline-offset: 3px; }
+.btn.primary{
+  background: linear-gradient(90deg, rgba(124,58,237,.80), rgba(34,211,238,.55));
+  border-color: rgba(255,255,255,.18);
+}
+
+.heroChips{ display:flex; flex-wrap:wrap; gap:8px; margin-top: 14px; }
 .accent{
   background: linear-gradient(90deg, var(--accent), var(--accent2));
   -webkit-background-clip: text;
   background-clip:text;
   color: transparent;
 }
-.caret{ display:inline-block; margin-left: 6px; animation: blink 1.1s steps(1) infinite; }
-@keyframes blink { 50% { opacity: 0; } }
 
-.lead{ margin: 12px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 60ch; }
-
-.cta{ margin-top: 14px; display:flex; flex-wrap:wrap; gap:10px; }
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.11);
-  text-decoration:none !important;
-  font-size: 12px;
-}
-.btn:hover{ background: rgba(255,255,255,.08); }
-.btn.primary{
-  border-color: rgba(124,58,237,.35);
-  background: linear-gradient(90deg, rgba(124,58,237,.22), rgba(34,211,238,.16));
+.badge{
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--muted);
 }
 
 .chips{ margin-top: 12px; display:flex; flex-wrap:wrap; gap:8px; }
@@ -286,7 +321,7 @@ h1{
 .tile > *{ position:relative; }
 .t1{ grid-column: 1 / -1; }
 .tileTitle{ font-size: 12px; color: var(--muted); margin-bottom: 8px; }
-.tileText{ font-size: 13px; color: rgba(236,235,255,.86); line-height:1.5; }
+.tileText, .tileBody{ font-size: 13px; color: rgba(236,235,255,.86); line-height:1.5; }
 .tileLink{ display:inline-block; margin-top:10px; color: rgba(236,235,255,.9); }
 
 .section{ margin-top: 22px; }
@@ -313,14 +348,8 @@ h1{
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
 }
-.aboutCard{
-  padding: 16px;
-  border-radius: var(--r2);
-  background: var(--glass);
-  border: 1px solid rgba(255,255,255,.10);
-}
-.aboutCard h3{ margin:0 0 10px; font-size: 14px; }
-.aboutCard p{ margin:0; color: rgba(236,235,255,.82); font-size: 13px; line-height: 1.6; }
+.aboutGrid .card h3{ margin:0; font-size: 14px; }
+.aboutGrid .card p{ margin:0; color: rgba(236,235,255,.82); font-size: 13px; line-height: 1.6; }
 .list{ margin:0; padding-left: 18px; color: rgba(236,235,255,.82); font-size: 13px; line-height:1.65; }
 
 /* let bento rows grow with content (prevents overlap into next sections) */
@@ -441,20 +470,19 @@ h1{
 .friendName{ font-size: 14px; }
 .friendSub{ margin-top:8px; font-size: 12px; color: var(--muted); }
 
-.contactGrid{
+.stackGrid{
   display:grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap:12px;
 }
-.contactCard{
-  padding: 16px;
-  border-radius: var(--r2);
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.10);
-  text-decoration:none !important;
+
+.contactGrid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:12px;
 }
-.contactTitle{ font-size: 14px; }
-.contactSub{ margin-top: 8px; color: var(--muted); font-size: 12px; }
+
+.btnRow{ display:flex; flex-wrap:wrap; gap:10px; }
 
 .footer{
   margin-top: 20px;
@@ -515,6 +543,7 @@ h1{
 /* Responsive */
 @media (max-width: 980px){
   .aboutGrid{ grid-template-columns: 1fr; }
+  .stackGrid{ grid-template-columns: 1fr; }
   .friendsRow, .contactGrid{ grid-template-columns: 1fr; }
   .hero{ grid-template-columns: 1fr; }
 }
@@ -730,6 +759,21 @@ h1{
   min-height: 1em; /* prevents layout jump when text appears */
 }
 
-#spacer { /* very quick spacer */
+#spacer { /* very quick spacer for better looks */
   padding: 5px;
+}
+
+.sideFoot,
+.mainFoot{
+  margin-top: 18px;
+  padding: 14px 6px 22px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sideFoot{
+  padding-left: 0;
+  padding-right: 0;
+  border-top: 1px solid rgba(255,255,255,.10);
 }

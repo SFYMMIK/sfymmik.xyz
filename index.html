@@ -6,11 +6,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
 
   <title>SfymmiK's Webpage</title>
-  <meta name="description" content="SfymmiK — build & break. Low-level experiments, web dev, self-hosting." />
+  <meta name="description" content="Szymon (SfymmiK) — systems + web developer. Low-level experiments, self-hosting, and fast prototypes." />
   <meta name="keywords" content="sfymmik,SfymmiK,linux,arch,freebsd,gentoo,programming,webdev,osdev" />
 
-  <meta property="og:title" content="SfymmiK's Webpage" />
-  <meta property="og:description" content="build & break. Low-level experiments, web dev, self-hosting." />
+  <meta property="og:title" content="SfymmiK — Developer Portfolio" />
+  <meta property="og:description" content="Systems + web dev. Low-level experiments, self-hosting, and fast prototypes." />
   <meta property="og:site_name" content="SfymmiK" />
   <meta property="og:type" content="website" />
 
@@ -24,7 +24,7 @@
     <aside class="side">
       <div class="brand">
         <div class="pfpWrap">
-          <img class="pfp" src="images/pfp.jpg" alt="SfymmiK profile picture" />
+          <img class="pfp" src="images/pfp.jpg" alt="profile picture" />
         </div>
         <div class="brandText">
           <div class="brandName">SfymmiK</div>
@@ -35,16 +35,16 @@
       <nav class="nav">
         <a class="navLink" href="#about">About</a>
         <a class="navLink" href="#projects">Projects</a>
-        <a class="navLink" href="#you">Me</a>
-        <a class="navLink" href="#live">Live</a>
-        <a class="navLink" href="#friends">Friends</a>
+        <a class="navLink" href="#stack">Stack</a>
+        <a class="navLink" href="#me">Links</a>
+        <a class="navLink" href="#contact">Contact</a>
       </nav>
 
-      <div class="links">
+      <div class="links" aria-label="Quick links">
         <a class="pill" href="https://github.com/SFYMMIK" target="_blank" rel="noreferrer">GitHub</a>
         <a class="pill" href="https://codeberg.org/SFYMMIK" target="_blank" rel="noreferrer">Codeberg</a>
         <a class="pill" href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">Forgejo</a>
-        <a class="pill" href="mailto:simonplayz002@gmail.com">Email</a>
+        <a class="pill" href="mailto:szymongrajner@sfymmik.xyz">Email</a>
       </div>
 
       <section class="rpcCard" aria-label="Discord presence">
@@ -90,33 +90,45 @@
     <!-- Main -->
     <main class="main">
       <!-- Hero -->
-      <section class="hero">
+      <section class="hero" aria-label="Hero">
         <div class="heroText">
-          <h1>build &amp; break</h1>
+          <div class="kicker">Szymon Grajner · SfymmiK</div>
+          <h1>Software &amp; Web Developer</h1>
           <p>
-            Low-level experiments, web dev, self-hosting, and whatever I’m obsessed with this week.
+            I experiment with low-level (sometimes) and I also do fast web prototypes, and self-hosted infrastructure.
+            I care about clean UX, performance, and learning by shipping.
           </p>
 
           <div class="heroActions">
-            <a class="pill pillBig" href="#projects">View projects</a>
-            <a class="pill pillBig" href="#me">Me</a>
+            <a class="btn primary" href="#projects">See projects</a>
+            <a class="btn" href="https://github.com/SFYMMIK" target="_blank" rel="noreferrer">GitHub</a>
+            <a class="btn" href="#contact">Contact</a>
+          </div>
+
+          <div class="heroChips" aria-label="Key focuses">
+            <span class="chip">Linux</span>
+            <span class="chip">BSD</span>
+            <span class="chip">Web (HTML/CSS/JS)</span>
+            <span class="chip">Java</span>
+            <span class="chip">Databases (MySQL)</span>
+            <span class="chip">Self-hosting</span>
           </div>
         </div>
 
-        <div class="heroTiles">
+        <div class="heroTiles" aria-label="Highlights">
           <div class="tile">
-            <div class="tileTitle">Now</div>
-            <div class="tileBody">C, Java, Linux, Web-Dev, and random experiments.</div>
+            <div class="tileTitle">Currently</div>
+            <div class="tileBody">Java + plus web tooling.</div>
           </div>
           <div class="tile">
-            <div class="tileTitle">Self-hosted</div>
+            <div class="tileTitle">Home base</div>
             <div class="tileBody">
-              Forgejo: <a href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">@SfymmiK</a>
+              Forgejo: <a href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">git.sfymmik.xyz</a>
             </div>
           </div>
           <div class="tile">
-            <div class="tileTitle">OS Stack</div>
-            <div class="tileBody">Arch / Gentoo / MX</div>
+            <div class="tileTitle">Platforms</div>
+            <div class="tileBody">Arch / Gentoo / FreeBSD</div>
           </div>
         </div>
       </section>
@@ -125,28 +137,28 @@
       <section class="section" id="about">
         <div class="sectionHead">
           <h2>About</h2>
-          <p>Turning curiosity into code, one broken project at a time.</p>
+          <p>Curiosity-driven projects with a focus on performance, UX, and learning in public.</p>
         </div>
 
         <div class="aboutGrid">
           <div class="card">
             <h3>Who am I?</h3>
             <p>
-              I’m Szymon (SfymmiK). I'am a 16 year old Programmer from Poland, i love experimenting with low-level code and websites pushing them to their limits.
+              I’m Szymon (SfymmiK), a 16-year-old programmer from Poland. I like experimenting with low-level
+              (C) and also shipping clean, fast web interfaces.
             </p>
           </div>
           <div class="card">
-            <h3>Basic Info:</h3>
+            <h3>What I enjoy</h3>
             <p>
-              Pronouns: He/Him<br/>
-              <a href="https://en.wikipedia.org/wiki/Asexuality" style="text-decoration: underline;">Asexual.</a><br/>
-              Still learning life.
+              Building tools I actually use: self-hosting setups, experimental programs,
+              and websites — then polishing the UI until it feels “right”.
             </p>
           </div>
           <div class="card">
-            <h3>Where am I?</h3>
+            <h3>Where to find me</h3>
             <p>
-              Poland • Online: on Discord and my own Forgejo instance.
+              Poland • Mostly online on Discord.
             </p>
           </div>
         </div>
@@ -156,71 +168,131 @@
       <section class="section" id="projects">
         <div class="sectionHead">
           <h2>Projects</h2>
+          <p class="muted">A few things I’m actively building and maintaining.</p>
         </div>
 
         <div class="bento" id="projectsGrid" aria-live="polite">
-          <div class="card">Loading projects…</div>
+          <a class="cardLink" href="https://lazer.sfymmik.xyz/" target="_blank" rel="noreferrer">
+            <div class="card span2">
+              <div class="cardTop">
+                <h3>LazerScope</h3>
+                <span class="badge">Featured</span>
+              </div>
+              <p>Vector oscilloscope simulation in the browser with a hardware-ish feel.</p>
+              <div class="chips">
+                <span class="chip">WebGL2</span>
+                <span class="chip">HTML/CSS/JS</span>
+              </div>
+              <div class="cardFoot">Open →</div>
+            </div>
+          </a>
+          <a class="cardLink" href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz/" target="_blank" rel="noreferrer">
+            <div class="card span2">
+              <div class="cardTop">
+                <h3>sfymmik.xyz</h3>
+              </div>
+              <p>My own webpage made with informative intent.</p>
+              <div class="chips">
+                <span class="chip">HTML/CSS/JS</span>
+              </div>
+              <div class="cardFoot">Go to →</div>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Stack -->
+      <section class="section" id="stack">
+        <div class="sectionHead">
+          <h2>Stack</h2>
+          <p class="muted">Tools I use a lot (and the stuff I keep learning).</p>
+        </div>
+
+        <div class="stackGrid">
+          <div class="card">
+            <h3>Languages</h3>
+            <div class="chips">
+              <span class="chip">Java</span>
+              <span class="chip">Go</span>
+              <span class="chip">HTML</span>
+              <span class="chip">CSS</span>
+              <span class="chip">MySQL</span>
+            </div>
+            <p class="muted">I like learning by building real things, not toy examples.</p>
+          </div>
+
+          <div class="card">
+            <h3>Platforms</h3>
+            <div class="chips">
+              <span class="chip">Arch Linux</span>
+              <span class="chip">Gentoo</span>
+              <span class="chip">FreeBSD</span>
+            </div>
+            <p class="muted">Daily-driver Linux, with an obsession for clean setups.</p>
+          </div>
+
+          <div class="card">
+            <h3>Focus areas</h3>
+            <ul class="list">
+              <li>Performance + responsiveness</li>
+              <li>UI polish (small details matter)</li>
+              <li>Self-hosting + deployments</li>
+              <li>Low-level learning (OS, rendering, parsers)</li>
+            </ul>
+          </div>
         </div>
       </section>
 
       <section class="section" id="me">
         <div class="sectionHead">
-          <h2>Me</h2>
-          <p>Quick links that represent “Me” online.</p>
+          <h2>Links</h2>
+          <p>Where I publish code and updates.</p>
         </div>
 
         <div class="meGrid">
-          <a class="card linkCard" href="https://sfymmik.xyz" target="_blank" rel="noreferrer">
-            <h3>Website</h3>
-            <p>sfymmik.xyz</p>
-          </a>
           <a class="card linkCard" href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">
             <h3>Forgejo</h3>
             <p>@SfymmiK on my own instance</p>
           </a>
           <a class="card linkCard" href="https://github.com/SFYMMIK" target="_blank" rel="noreferrer">
-            <h3>GitHub</h3>
+            <h3>GitHub (mirror)</h3>
             <p>@SFYMMIK</p>
           </a>
           <a class="card linkCard" href="https://codeberg.org/SfymmiK" target="_blank" rel="noreferrer">
-            <h3>Codeberg</h3>
+            <h3>Codeberg (mirror)</h3>
             <p>@SfymmiK</p>
           </a>
         </div>
       </section>
 
-      <!-- Live -->
-      <section class="section" id="live">
+      <!-- Contact -->
+      <section class="section" id="contact">
         <div class="sectionHead">
-          <p>Presence:</p>
+          <h2>Contact</h2>
+          <p class="muted">Want to collaborate, ask something, or just say hi?</p>
         </div>
+
+        <div class="contactGrid">
+          <div class="card">
+            <h3>Email</h3>
+            <p class="muted">Best for anything serious.</p>
+            <a class="btn primary" href="mailto:szymongrajner@sfymmik.xyz">szymongrajner@sfymmik.xyz</a>
+          </div>
 
           <div class="card">
-            <h3>Status</h3>
-            <p class="muted">
-              Discord + Spotify are shown in the sidebar. (Powered by Lanyard.)
-            </p>
+            <h3>Git profiles</h3>
+            <p class="muted">Most of my work is public.</p>
+            <div class="btnRow">
+              <a class="btn" href="https://github.com/SFYMMIK" target="_blank" rel="noreferrer">GitHub</a>
+              <a class="btn" href="https://codeberg.org/SFYMMIK" target="_blank" rel="noreferrer">Codeberg</a>
+              <a class="btn" href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">Forgejo</a>
+            </div>
           </div>
-        </div>
-      </section>
-
-      <!-- Friends -->
-      <section class="section" id="friends">
-        <div class="sectionHead">
-          <h2>Friends</h2>
-          <p>People / links I want to mention.</p>
-        </div>
-
-        <div class="friendsGrid" id="friendsGrid">
-          <a class="pill" href="https://maydo.uk">Maydo</a>
-          <a class="pill" href="https://sdgscryv.xyz/">Seppe(Scryv)</a>
         </div>
       </section>
       <div id="spacer"></div>
       <footer class="mainFoot">
-        <div class="muted">
-          Built with plain HTML/CSS/JS. Hosted anywhere.
-        </div>
+        <div class="muted">Built with plain HTML/CSS/JS. Fast, simple, deployable anywhere.</div>
       </footer>
     </main>
   </div>
@@ -229,8 +301,6 @@
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
-
-  <script src="js/projects.js" defer></script>
-  <script src="js/rpc.js" defer></script>
+<script src="js/rpc.js" defer></script>
 </body>
 </html>
