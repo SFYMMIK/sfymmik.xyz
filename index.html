@@ -82,6 +82,25 @@
         </div>
       </section>
       <div id="spacer"></div>
+      <div class="tz-card" id="tzCard">
+        <div class="tz-row">
+          <span class="tz-label">MY TIME</span>
+          <span class="tz-value" id="myTime">--:--:--</span>
+        </div>
+
+      <div class="tz-divider"></div>
+
+      <div class="tz-row">
+        <span class="tz-label">YOUR TIME</span>
+        <span class="tz-value" id="yourTime">--:--:--</span>
+    </div>
+
+      <div class="tz-divider"></div>
+
+      <div class="tz-row tz-row-center">
+        <span class="tz-label" id="diffText">YOU ARE --H FROM ME</span>
+      </div>
+    </div>
       <footer class="sideFoot">
         <span>© <span id="year"></span> SfymmiK</span>
       </footer>
@@ -331,6 +350,68 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.45 });
 
 sections.forEach(s => observer.observe(s));
+</script>
+<script>
+  const MY_TIMEZONE = "Europe/Warsaw"; // change if needed (e.g. "America/New_York")
+
+  const elMy   = document.getElementById("myTime");
+  const elYour = document.getElementById("yourTime");
+  const elDiff = document.getElementById("diffText");
+
+  function pad2(n){ return String(n).padStart(2, "0"); }
+
+  function formatHMS(date, timeZone){
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone,
+      hour12: false,
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    }).formatToParts(date);
+    const get = (t) => parts.find(p => p.type === t)?.value ?? "00";
+    return `${get("hour")}:${get("minute")}:${get("second")}`;
+  }
+
+  // Minutes offset from UTC for a given IANA timezone at 'date'
+  function tzOffsetMinutes(date, timeZone){
+    // Uses shortOffset like "GMT+1" / "UTC-07"
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "shortOffset"
+    }).formatToParts(date);
+
+    const tzName = parts.find(p => p.type === "timeZoneName")?.value || "UTC";
+    const m = tzName.match(/([+-])(\d{1,2})(?::(\d{2}))?/i);
+    if (!m) return 0;
+
+    const sign = m[1] === "-" ? -1 : 1;
+    const hh = parseInt(m[2], 10);
+    const mm = parseInt(m[3] || "0", 10);
+    return sign * (hh * 60 + mm);
+  }
+
+  function update(){
+    const now = new Date();
+
+    // YOUR TIME = viewer local time
+    const localHMS = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+    elYour.textContent = localHMS;
+
+    // MY TIME = chosen timezone
+    elMy.textContent = formatHMS(now, MY_TIMEZONE);
+
+    // difference (YOUR - MY) in hours (rounded to nearest 0.5 if you want, but screenshot shows whole hours)
+    const myOff  = tzOffsetMinutes(now, MY_TIMEZONE);
+    const yourOff = -now.getTimezoneOffset(); // local minutes east of UTC
+
+    const diffHours = Math.round((yourOff - myOff) / 60); // whole hours
+    const signStr = diffHours >= 0 ? `+${diffHours}` : `${diffHours}`;
+
+    elDiff.textContent = `YOU ARE ${signStr}H FROM ME`;
+  }
+
+  update();
+  setInterval(update, 1000);
 </script>
 <script src="js/rpc.js" defer></script>
 </body>

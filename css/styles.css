@@ -789,3 +789,40 @@ h1{
   padding-right: 0;
   border-top: 1px solid rgba(255,255,255,.10);
 }
+
+  .tz-card{
+    width: auto;
+    background: #1b222a;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: #d8e0ea;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+    box-shadow: 0 10px 24px rgba(0,0,0,.35);
+  }
+  .tz-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap: 12px;
+    line-height: 1.15;
+    padding: 6px 0;
+  }
+  .tz-row-center{ justify-content:center; padding: 8px 0 2px; }
+  .tz-label{
+    font-size: 12px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: rgba(216,224,234,.75);
+    white-space: nowrap;
+  }
+  .tz-value{
+    font-size: 16px;
+    letter-spacing: .08em;
+    color: rgba(216,224,234,.95);
+  }
+  .tz-divider{
+    height: 1px;
+    background: rgba(255,255,255,.08);
+    margin: 3px 0;
+  }
