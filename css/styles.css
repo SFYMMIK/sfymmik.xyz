@@ -25,6 +25,7 @@
 *{ box-sizing:border-box; }
 html, body{
   min-height: 100%;
+  scroll-behavior: smooth;
 }
 
 html{
@@ -134,26 +135,37 @@ a:hover{ text-decoration: underline; text-underline-offset: 3px; }
 
 /* Nav (HTML uses .nav + .navLink) */
 .nav{
-  margin-top: 14px;
+  margin-top: 1.5rem;
   display:flex;
   flex-direction: column;
-  gap:8px;
+  gap: 0.15rem;
 }
 .navLink{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding: 10px 12px;
+  padding: 0.5rem 0.75rem;
   border-radius: 14px;
   border: 1px solid transparent;
   color: var(--muted);
   background: transparent;
+  transition: all 0.2s;
 }
 .navLink:hover{
   text-decoration:none;
   color: var(--ink);
   background: rgba(255,255,255,.03);
   border-color: rgba(255,255,255,.08);
+}
+/* ACTIVE nav item */
+.navLink.active,
+.navLink[aria-current="page"]{
+  color: var(--ink);
+  background: #222;
+  border-color: rgba(255,255,255,.14);
+  box-shadow:
+    0 0 0 1px rgba(124,58,237,.22) inset,
+    0 0 18px rgba(124,58,237,.18);
 }
 
 /* sidebar quick links row (HTML uses .links) */

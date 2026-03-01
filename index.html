@@ -311,9 +311,27 @@
   </div>
 
   <!-- Scripts -->
-  <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-  </script>
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
+
+/* NAV ACTIVE HIGHLIGHT */
+const sections = document.querySelectorAll("section[id]");
+const navLinks = document.querySelectorAll(".nav .navLink");
+
+function setActive(id){
+  navLinks.forEach(a => {
+    a.classList.toggle("active", a.getAttribute("href") === `#${id}`);
+  });
+}
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) setActive(entry.target.id);
+  });
+}, { threshold: 0.45 });
+
+sections.forEach(s => observer.observe(s));
+</script>
 <script src="js/rpc.js" defer></script>
 </body>
 </html>
