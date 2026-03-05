@@ -81,26 +81,29 @@
           <div class="miniStatus" id="copySpotifyStatus" aria-live="polite"></div>
         </div>
       </section>
+
       <div id="spacer"></div>
+
       <div class="tz-card" id="tzCard">
         <div class="tz-row">
           <span class="tz-label">MY TIME</span>
           <span class="tz-value" id="myTime">--:--:--</span>
         </div>
 
-      <div class="tz-divider"></div>
+        <div class="tz-divider"></div>
 
-      <div class="tz-row">
-        <span class="tz-label">YOUR TIME</span>
-        <span class="tz-value" id="yourTime">--:--:--</span>
-    </div>
+        <div class="tz-row">
+          <span class="tz-label">YOUR TIME</span>
+          <span class="tz-value" id="yourTime">--:--:--</span>
+        </div>
 
-      <div class="tz-divider"></div>
+        <div class="tz-divider"></div>
 
-      <div class="tz-row tz-row-center">
-        <span class="tz-label" id="diffText">YOU ARE --H FROM ME</span>
+        <div class="tz-row tz-row-center">
+          <span class="tz-label" id="diffText">YOU ARE --H FROM ME</span>
+        </div>
       </div>
-    </div>
+
       <footer class="sideFoot">
         <span>© <span id="year"></span> SfymmiK</span>
       </footer>
@@ -139,12 +142,14 @@
             <div class="tileTitle">Currently</div>
             <div class="tileBody">Java + web tooling.</div>
           </div>
+
           <div class="tile">
             <div class="tileTitle">Home base</div>
             <div class="tileBody">
               Forgejo: <a href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">git.sfymmik.xyz</a>
             </div>
           </div>
+
           <div class="tile">
             <div class="tileTitle">Platforms</div>
             <div class="tileBody">Arch / Gentoo / FreeBSD</div>
@@ -304,7 +309,7 @@
             <p class="muted">Best for anything serious.</p>
             <a class="btn primary" href="mailto:szymongrajner@sfymmik.xyz">szymongrajner@sfymmik.xyz</a>
           </div>
-          
+
           <div class="card">
             <h3>Discord</h3>
             <p class="muted">Best for general questions.</p>
@@ -322,97 +327,135 @@
           </div>
         </div>
       </section>
+
       <div id="spacer"></div>
+
       <footer class="mainFoot">
         <div class="muted">Built with plain HTML/CSS/JS. Fast, simple, deployable anywhere.</div>
       </footer>
     </main>
+
+    <!-- RIGHT GUTTER SHOUTOUTS (lives to the right when there is space; drops below main when not) -->
+    <div class="shoutoutsWrap" aria-label="Shoutouts">
+      <details class="dd dd--shoutouts">
+        <summary class="dd__sum">
+          <span class="dd__title">Shoutouts</span>
+          <span class="dd__chev" aria-hidden="true">▾</span>
+        </summary>
+
+        <div class="dd__panel">
+          <a class="dd__item" href="https://github.com/SFYMMIK" target="_blank" rel="noreferrer">
+            <span class="dd__name">@SFYMMIK (test)</span>
+            <span class="dd__desc">— test</span>
+          </a>
+
+          <a class="dd__item" href="https://codeberg.org/SfymmiK" target="_blank" rel="noreferrer">
+            <span class="dd__name">@SfymmiK (test)</span>
+            <span class="dd__desc">— test</span>
+          </a>
+
+          <div class="dd__note muted">imma add more ppl here ykyk, right now im testing this.</div>
+        </div>
+      </details>
+    </div>
   </div>
 
   <!-- Scripts -->
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    /* NAV ACTIVE HIGHLIGHT */
+    const sections = document.querySelectorAll("section[id]");
+    const navLinks = document.querySelectorAll(".nav .navLink");
+
+    function setActive(id){
+      navLinks.forEach(a => {
+        a.classList.toggle("active", a.getAttribute("href") === `#${id}`);
+      });
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) setActive(entry.target.id);
+      });
+    }, { threshold: 0.45 });
+
+    sections.forEach(s => observer.observe(s));
+  </script>
+
+  <script>
+    const MY_TIMEZONE = "Europe/Warsaw";
+
+    const elMy   = document.getElementById("myTime");
+    const elYour = document.getElementById("yourTime");
+    const elDiff = document.getElementById("diffText");
+
+    function pad2(n){ return String(n).padStart(2, "0"); }
+
+    function formatHMS(date, timeZone){
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone,
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }).formatToParts(date);
+      const get = (t) => parts.find(p => p.type === t)?.value ?? "00";
+      return `${get("hour")}:${get("minute")}:${get("second")}`;
+    }
+
+    // Minutes offset from UTC for a given IANA timezone at 'date'
+    function tzOffsetMinutes(date, timeZone){
+      // Uses shortOffset like "GMT+1" / "UTC-07"
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone,
+        timeZoneName: "shortOffset"
+      }).formatToParts(date);
+
+      const tzName = parts.find(p => p.type === "timeZoneName")?.value || "UTC";
+      const m = tzName.match(/([+-])(\d{1,2})(?::(\d{2}))?/i);
+      if (!m) return 0;
+
+      const sign = m[1] === "-" ? -1 : 1;
+      const hh = parseInt(m[2], 10);
+      const mm = parseInt(m[3] || "0", 10);
+      return sign * (hh * 60 + mm);
+    }
+
+    function update(){
+      const now = new Date();
+
+      const localHMS = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+      elYour.textContent = localHMS;
+
+      elMy.textContent = formatHMS(now, MY_TIMEZONE);
+
+      const myOff  = tzOffsetMinutes(now, MY_TIMEZONE);
+      const yourOff = -now.getTimezoneOffset();
+
+      const diffHours = Math.round((yourOff - myOff) / 60); // whole hours
+      const signStr = diffHours >= 0 ? `+${diffHours}` : `${diffHours}`;
+
+      elDiff.textContent = `YOU ARE ${signStr}H FROM ME`;
+    }
+
+    update();
+    setInterval(update, 1000);
+  </script>
 <script>
-document.getElementById("year").textContent = new Date().getFullYear();
-
-/* NAV ACTIVE HIGHLIGHT */
-const sections = document.querySelectorAll("section[id]");
-const navLinks = document.querySelectorAll(".nav .navLink");
-
-function setActive(id){
-  navLinks.forEach(a => {
-    a.classList.toggle("active", a.getAttribute("href") === `#${id}`);
+document.querySelectorAll(".dd--shoutouts").forEach(dd => {
+  dd.addEventListener("toggle", () => {
+    if (dd.open) {
+      setTimeout(() => {
+        dd.scrollIntoView({
+          behavior: "smooth",
+          block: "start"
+        });
+      }, 60);
+    }
   });
-}
-
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) setActive(entry.target.id);
-  });
-}, { threshold: 0.45 });
-
-sections.forEach(s => observer.observe(s));
+});
 </script>
-<script>
-  const MY_TIMEZONE = "Europe/Warsaw"; // change if needed (e.g. "America/New_York")
-
-  const elMy   = document.getElementById("myTime");
-  const elYour = document.getElementById("yourTime");
-  const elDiff = document.getElementById("diffText");
-
-  function pad2(n){ return String(n).padStart(2, "0"); }
-
-  function formatHMS(date, timeZone){
-    const parts = new Intl.DateTimeFormat("en-GB", {
-      timeZone,
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit"
-    }).formatToParts(date);
-    const get = (t) => parts.find(p => p.type === t)?.value ?? "00";
-    return `${get("hour")}:${get("minute")}:${get("second")}`;
-  }
-
-  // Minutes offset from UTC for a given IANA timezone at 'date'
-  function tzOffsetMinutes(date, timeZone){
-    // Uses shortOffset like "GMT+1" / "UTC-07"
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      timeZoneName: "shortOffset"
-    }).formatToParts(date);
-
-    const tzName = parts.find(p => p.type === "timeZoneName")?.value || "UTC";
-    const m = tzName.match(/([+-])(\d{1,2})(?::(\d{2}))?/i);
-    if (!m) return 0;
-
-    const sign = m[1] === "-" ? -1 : 1;
-    const hh = parseInt(m[2], 10);
-    const mm = parseInt(m[3] || "0", 10);
-    return sign * (hh * 60 + mm);
-  }
-
-  function update(){
-    const now = new Date();
-
-    // YOUR TIME = viewer local time
-    const localHMS = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
-    elYour.textContent = localHMS;
-
-    // MY TIME = chosen timezone
-    elMy.textContent = formatHMS(now, MY_TIMEZONE);
-
-    // difference (YOUR - MY) in hours (rounded to nearest 0.5 if you want, but screenshot shows whole hours)
-    const myOff  = tzOffsetMinutes(now, MY_TIMEZONE);
-    const yourOff = -now.getTimezoneOffset(); // local minutes east of UTC
-
-    const diffHours = Math.round((yourOff - myOff) / 60); // whole hours
-    const signStr = diffHours >= 0 ? `+${diffHours}` : `${diffHours}`;
-
-    elDiff.textContent = `YOU ARE ${signStr}H FROM ME`;
-  }
-
-  update();
-  setInterval(update, 1000);
-</script>
-<script src="js/rpc.js" defer></script>
+  <script src="js/rpc.js" defer></script>
 </body>
 </html>
