@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ---- Status color
+  // ---- Status helpers
   const statusColor = {
     online: "#3ba55d",
     idle: "#faa61a",
@@ -51,6 +51,23 @@ document.addEventListener("DOMContentLoaded", () => {
       : "Offline";
   }
 
+  function setStatusDot(status) {
+    dot.classList.remove("online", "idle", "dnd", "offline");
+
+    if (status === "online") {
+      dot.classList.add("online");
+    } else if (status === "idle") {
+      dot.classList.add("idle");
+    } else if (status === "dnd") {
+      dot.classList.add("dnd");
+    } else {
+      dot.classList.add("offline");
+    }
+
+    // keeps compatibility with your old inline-color approach too
+    dot.style.background = statusColor[status] || statusColor.offline;
+  }
+
   // ---- Spotify link copy
   let currentSpotifyUrl = null;
 
@@ -59,12 +76,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function copyText(text) {
-    // Works only on HTTPS/localhost in most browsers
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);
       return;
     }
-    // Fallback
+
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.setAttribute("readonly", "");
@@ -83,6 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   copySpotifyBtn.addEventListener("click", async () => {
     if (!currentSpotifyUrl) return;
+
     try {
       await copyText(currentSpotifyUrl);
       setCopyUi({ enabled: true, status: "Copied to clipboard!!!" });
@@ -104,7 +121,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function pickGame(activities = []) {
-    // pick a normal "Playing" activity (ignore spotify)
     return activities.find(a => a.type === 0 && (a.name || "").toLowerCase() !== "spotify")
       || activities.find(a => a.type === 0)
       || null;
@@ -121,11 +137,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // -------------------------
-  // Spotify rendering (FIXED)
+  // Spotify rendering
   // -------------------------
 
-  // Keep the card visible & stable; just change text.
-  // That way it doesn't "randomly disappear" when presence flickers.
   function hideSpotify() {
     spotifyBlock.hidden = false;
 
@@ -175,12 +189,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Status
       const st = data.discord_status || "offline";
-      dot.style.background = statusColor[st] || statusColor.offline;
+      setStatusDot(st);
       statusText.textContent = statusLabel(st);
 
-      // Spotify (robust)
-      // Instead of requiring listening_to_spotify + track_id, we render whenever data.spotify exists.
-      // When paused / presence flickers, the card stays stable.
+      // Spotify
       if (data.spotify) {
         showSpotify({
           song: data.spotify.song || "Unknown track",
@@ -213,10 +225,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e) {
       console.error("[Lanyard widget] update failed:", e);
       statusText.textContent = "Error";
-      dot.style.background = statusColor.offline;
+      setStatusDot("offline");
       detailsEl.textContent = "Couldn’t load presence";
 
-      // keep spotify sane
       hideSpotify();
 
       currentSpotifyUrl = null;
@@ -230,5 +241,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) update();
   });
+
   window.addEventListener("focus", () => update());
 });
