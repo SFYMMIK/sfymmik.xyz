@@ -976,3 +976,346 @@ h1 {
     max-width: 100%;
   }
 }
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(124,58,237,0.16), transparent 30%),
+    linear-gradient(180deg, rgba(5,3,12,0.96), rgba(5,3,12,0.985));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.intro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  background:
+    linear-gradient(
+      -16deg,
+      transparent 49.7%,
+      rgba(255,255,255,0.06) 49.95%,
+      rgba(255,255,255,0.06) 50.05%,
+      transparent 50.3%
+    );
+  mix-blend-mode: screen;
+  animation: introSeamHide 0.45s ease 2s forwards;
+}
+
+.introHalf {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: transparent;
+  will-change: transform, opacity, filter;
+}
+
+.introHalfTop {
+  clip-path: polygon(0 0, 100% 0, 100% 50.6%, 0 52.2%);
+  animation: introTopSplit 0.8s cubic-bezier(.2,.82,.2,1) 2.15s forwards;
+}
+
+.introHalfBottom {
+  clip-path: polygon(0 49.4%, 100% 47.8%, 100% 100%, 0 100%);
+  animation: introBottomSplit 0.8s cubic-bezier(.2,.82,.2,1) 2.15s forwards;
+}
+
+.introInner {
+  position: relative;
+  text-align: center;
+  animation: introPop 0.7s ease both;
+}
+
+.introOrb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(50px);
+  pointer-events: none;
+}
+
+.introOrb1 {
+  width: 300px;
+  height: 300px;
+  left: 18%;
+  top: 18%;
+  background: rgba(124,58,237,0.2);
+  animation: introOrbFloat1 6s ease-in-out infinite alternate;
+}
+
+.introOrb2 {
+  width: 260px;
+  height: 260px;
+  right: 16%;
+  bottom: 16%;
+  background: rgba(34,211,238,0.14);
+  animation: introOrbFloat2 7s ease-in-out infinite alternate;
+}
+
+.introRing {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 330px;
+  height: 330px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(255,255,255,0.08);
+  background:
+    conic-gradient(
+      from 0deg,
+      rgba(124,58,237,0.3),
+      rgba(34,211,238,0.18),
+      rgba(255,255,255,0.04),
+      rgba(255,0,170,0.12),
+      rgba(124,58,237,0.3)
+    );
+  filter: blur(16px);
+  opacity: 0.85;
+  animation: introRingSpin 7s linear infinite;
+}
+
+.introLogo {
+  position: relative;
+  font-family:
+    "Bodoni Moda",
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Courier New",
+    monospace;
+  font-size: clamp(2.4rem, 7vw, 5rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow:
+    0 0 18px rgba(124,58,237,0.42),
+    0 0 36px rgba(34,211,238,0.14);
+  animation:
+    introGlowPulse 1.8s ease-in-out infinite,
+    introFlicker 2.8s linear infinite,
+    introLetterDrift 2.2s ease-in-out infinite alternate;
+}
+
+.introLine {
+  width: min(240px, 68vw);
+  height: 1px;
+  margin: 16px auto 14px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.88), transparent);
+  animation: introLineGrow 0.7s ease both;
+}
+
+.introText {
+  color: rgba(255,255,255,0.78);
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  animation: introTextFloat 2s ease-in-out infinite;
+}
+
+.introSlash {
+  position: absolute;
+  inset: -45%;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 4;
+  background:
+    linear-gradient(
+      115deg,
+      transparent 46.5%,
+      rgba(255,255,255,0.98) 48.8%,
+      rgba(255,255,255,0.98) 49.4%,
+      rgba(124,58,237,0.96) 50%,
+      rgba(34,211,238,0.96) 50.8%,
+      rgba(255,255,255,0.98) 51.4%,
+      rgba(255,255,255,0.98) 52%,
+      transparent 54%
+    );
+  transform: rotate(-16deg) translateX(-125%) scaleX(0.7);
+  filter: blur(3px);
+  mix-blend-mode: screen;
+  animation: introSlashCut 0.34s cubic-bezier(.22,.8,.22,1) 2.02s forwards;
+}
+
+.introImpact {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  background:
+    radial-gradient(circle at center, rgba(255,255,255,0.9), rgba(255,255,255,0.16) 18%, transparent 42%);
+  mix-blend-mode: screen;
+  animation: introImpactFlash 0.4s ease-out 2.05s forwards;
+}
+
+@keyframes introPop {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes introLineGrow {
+  0% {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes introGlowPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes introFlicker {
+  0%, 18%, 22%, 62%, 64%, 100% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0.93;
+  }
+  63% {
+    opacity: 0.91;
+  }
+}
+
+@keyframes introLetterDrift {
+  0% {
+    letter-spacing: 0.12em;
+  }
+  100% {
+    letter-spacing: 0.18em;
+  }
+}
+
+@keyframes introTextFloat {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.76;
+  }
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes introRingSpin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes introOrbFloat1 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(40px, -22px) scale(1.1);
+  }
+}
+
+@keyframes introOrbFloat2 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(-45px, 26px) scale(1.08);
+  }
+}
+
+@keyframes introSlashCut {
+  0% {
+    opacity: 0;
+    transform: rotate(-16deg) translateX(-125%) scaleX(0.7);
+    filter: blur(8px);
+  }
+  25% {
+    opacity: 1;
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(-16deg) translateX(85%) scaleX(1.18);
+    filter: blur(4px);
+  }
+}
+
+@keyframes introImpactFlash {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+    filter: blur(8px);
+  }
+  30% {
+    opacity: 0.95;
+    transform: scale(1.02);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.08);
+    filter: blur(14px);
+  }
+}
+
+@keyframes introTopSplit {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: translate(-120px, -90px) rotate(-7deg) scale(1.02);
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+
+@keyframes introBottomSplit {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: translate(120px, 90px) rotate(7deg) scale(1.02);
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+
+@keyframes introSeamHide {
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}

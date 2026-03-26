@@ -28,6 +28,30 @@
 </head>
 
 <body>
+<div class="intro" id="intro">
+  <div class="introHalf introHalfTop">
+    <div class="introOrb introOrb1"></div>
+    <div class="introInner">
+      <div class="introRing"></div>
+      <div class="introLogo">SfymmiK</div>
+      <div class="introLine"></div>
+      <div class="introText">build / break / ship</div>
+    </div>
+  </div>
+
+  <div class="introHalf introHalfBottom">
+    <div class="introOrb introOrb2"></div>
+    <div class="introInner">
+      <div class="introRing"></div>
+      <div class="introLogo">SfymmiK</div>
+      <div class="introLine"></div>
+      <div class="introText">build / break / ship</div>
+    </div>
+  </div>
+
+  <div class="introSlash"></div>
+  <div class="introImpact"></div>
+</div>
   <div class="pageGlow"></div>
 
   <div class="site">
@@ -446,7 +470,16 @@
       </footer>
     </main>
   </div>
+<script>
+  window.addEventListener("load", () => {
+    const intro = document.getElementById("intro");
+    if (!intro) return;
 
+    setTimeout(() => {
+      intro.remove();
+    }, 3100);
+  });
+</script>
   <!-- Scripts -->
   <script>
     document.getElementById("year").textContent = new Date().getFullYear();
