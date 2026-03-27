@@ -1319,14 +1319,3 @@ h1 {
     opacity: 0;
   }
 }
-
-@media (max-width: 768px) {
-  .introOrb,
-  .introRing,
-  .introSlash,
-  .introImpact,
-  .introHalf,
-  .introInner {
-    filter: none !important;
-  }
-}
