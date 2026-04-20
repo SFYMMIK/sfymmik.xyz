@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const gameEl = document.getElementById("rpcGame");
   const detailsEl = document.getElementById("rpcDetails");
 
-  const spotifyBlock = document.getElementById("spotifyBlock");
   const spCover = document.getElementById("spCover");
   const spTrack = document.getElementById("spTrack");
   const spArtist = document.getElementById("spArtist");
@@ -21,14 +20,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const copySpotifyBtn = document.getElementById("copySpotifyBtn");
   const copySpotifyStatus = document.getElementById("copySpotifyStatus");
 
-  // ---- Sanity check
+  // ---- Sanity check (bar removed)
   const required = {
     dot, statusText, avatar, nameEl,
     gameIcon, gameEl, detailsEl,
-    spotifyBlock, spCover, spTrack, spArtist,
+    spCover, spTrack, spArtist,
     copySpotifyBtn, copySpotifyStatus
   };
-
   for (const [k, v] of Object.entries(required)) {
     if (!v) {
       console.error(`[Lanyard widget] Missing element for id="${k}". Check your HTML IDs.`);
@@ -36,37 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ---- Status helpers
+  // ---- Status
   const statusColor = {
     online: "#3ba55d",
     idle: "#faa61a",
     dnd: "#ed4245",
     offline: "#747f8d"
   };
-
-  function statusLabel(s) {
-    return s === "online" ? "Online"
-      : s === "idle" ? "Idle"
-      : s === "dnd" ? "Do Not Disturb"
-      : "Offline";
-  }
-
-  function setStatusDot(status) {
-    dot.classList.remove("online", "idle", "dnd", "offline");
-
-    if (status === "online") {
-      dot.classList.add("online");
-    } else if (status === "idle") {
-      dot.classList.add("idle");
-    } else if (status === "dnd") {
-      dot.classList.add("dnd");
-    } else {
-      dot.classList.add("offline");
-    }
-
-    // keeps compatibility with your old inline-color approach too
-    dot.style.background = statusColor[status] || statusColor.offline;
-  }
 
   // ---- Spotify link copy
   let currentSpotifyUrl = null;
@@ -76,11 +50,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function copyText(text) {
+    // Works only on HTTPS/localhost in most browsers
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);
       return;
     }
 
+    // Fallback
     const ta = document.createElement("textarea");
     ta.value = text;
     ta.setAttribute("readonly", "");
@@ -99,16 +75,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   copySpotifyBtn.addEventListener("click", async () => {
     if (!currentSpotifyUrl) return;
-
     try {
       await copyText(currentSpotifyUrl);
-      setCopyUi({ enabled: true, status: "Copied to clipboard!!!" });
-      setTimeout(() => setCopyUi({ enabled: true, status: "" }), 2000);
+      setCopyUi({ enabled: true, status: "Copied ✅" });
+      setTimeout(() => setCopyUi({ enabled: true, status: "" }), 1200);
     } catch (e) {
       console.error("[Lanyard widget] copy failed:", e);
-      setCopyUi({ enabled: true, status: "Copying failed." });
+      setCopyUi({ enabled: true, status: "Copy failed ❌" });
     }
   });
+
+  function statusLabel(s) {
+    return s === "online" ? "Online"
+      : s === "idle" ? "Idle"
+      : s === "dnd" ? "Do Not Disturb"
+      : "Offline";
+  }
 
   // ---- Discord Avatar
   function discordAvatarUrl(user) {
@@ -136,41 +118,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return `https://cdn.discordapp.com/app-assets/${activity.application_id}/${key}.png`;
   }
 
-  // -------------------------
-  // Spotify rendering
-  // -------------------------
-
-  function hideSpotify() {
-    spotifyBlock.hidden = false;
-
-    spTrack.textContent = "Not listening to Spotify";
-    spArtist.textContent = "—";
-
-    spCover.src = "";
-    spCover.hidden = true;
-
-    currentSpotifyUrl = null;
-    setCopyUi({ enabled: false, status: "" });
-  }
-
-  function showSpotify({ song, artist, albumArtUrl, trackId }) {
-    spotifyBlock.hidden = false;
-
-    spTrack.textContent = song || "Unknown track";
-    spArtist.textContent = artist || "Unknown artist";
-
-    if (albumArtUrl) {
-      spCover.src = albumArtUrl;
-      spCover.hidden = false;
-    } else {
-      spCover.src = "";
-      spCover.hidden = true;
-    }
-
-    currentSpotifyUrl = spotifyTrackUrl(trackId);
-    setCopyUi({ enabled: !!currentSpotifyUrl, status: "" });
-  }
-
   // =========================
   // Main update (REST)
   // =========================
@@ -189,19 +136,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Status
       const st = data.discord_status || "offline";
-      setStatusDot(st);
+      dot.style.background = statusColor[st] || statusColor.offline;
       statusText.textContent = statusLabel(st);
 
-      // Spotify
-      if (data.spotify) {
-        showSpotify({
-          song: data.spotify.song || "Unknown track",
-          artist: data.spotify.artist || "Unknown artist",
-          albumArtUrl: data.spotify.album_art_url || null,
-          trackId: data.spotify.track_id || null
-        });
+      // Spotify (text + cover ONLY, bar removed)
+      if (data.spotify?.track_id) {
+        spTrack.textContent = data.spotify.song || "—";
+        spArtist.textContent = data.spotify.artist || "—";
+
+        currentSpotifyUrl = spotifyTrackUrl(data.spotify.track_id);
+        setCopyUi({ enabled: !!currentSpotifyUrl, status: "" });
+
+        if (data.spotify.album_art_url) {
+          spCover.src = data.spotify.album_art_url;
+          spCover.hidden = false;
+        } else {
+          spCover.hidden = true;
+        }
       } else {
-        hideSpotify();
+        spTrack.textContent = "Not listening to anything right now";
+        spArtist.textContent = "—";
+        spCover.hidden = true;
+
+        currentSpotifyUrl = null;
+        setCopyUi({ enabled: false, status: "Not listening" });
       }
 
       // Game + Details + Icon
@@ -225,10 +183,13 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (e) {
       console.error("[Lanyard widget] update failed:", e);
       statusText.textContent = "Error";
-      setStatusDot("offline");
+      dot.style.background = statusColor.offline;
       detailsEl.textContent = "Couldn’t load presence";
 
-      hideSpotify();
+      // keep spotify block sane
+      spTrack.textContent = "Not listening to anything right now";
+      spArtist.textContent = "—";
+      spCover.hidden = true;
 
       currentSpotifyUrl = null;
       setCopyUi({ enabled: false, status: "Error" });
@@ -241,6 +202,5 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) update();
   });
-
   window.addEventListener("focus", () => update());
 });

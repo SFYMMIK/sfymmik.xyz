@@ -1,577 +1,173 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="author" content="Szymon Grajner (SfymmiK)" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>SfymmiK's Webpage</title>
-  <meta
-    name="description"
-    content="Szymon (SfymmiK) — systems + web developer. Low-level experiments, self-hosting, and fast prototypes."
-  />
-  <meta
-    name="keywords"
-    content="sfymmik,SfymmiK,linux,arch,freebsd,gentoo,programming,webdev,osdev"
-  />
-
-  <meta property="og:title" content="SfymmiK — Developer Portfolio" />
-  <meta
-    property="og:description"
-    content="Systems + web dev. Low-level experiments, self-hosting, and fast prototypes."
-  />
-  <meta property="og:site_name" content="SfymmiK" />
-  <meta property="og:type" content="website" />
-
+  <meta name="author" content="Szymon Grajner (SfymmiK)">
+  <meta property="og:description" content="SfymmiK – 16 y/o programmer from Poland, into Unix-like OS, low-level experiments, and web dev.">
+  <meta name="keywords" content="sfymmik,SfymmiK,SFYMMIK,Sfymmik">
+  <meta property="og:url" content="https://sfymmik.xyz">
+  <meta property="og:site_name" content="SfymmiK's Webpage'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="og:title" content="SfymmiK's Webpage">
+  <meta name="title" content="SfymmiK's Webpage">
+  <meta property="og:image" content="https://sfymmik.xyz/images/pfp.png">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <link rel="stylesheet" href="css/styles.css" />
-  <link rel="icon" href="https://sfymmik.xyz/images/pfp.jpg" />
-</head>
-
-<body>
-<div class="intro" id="intro">
-  <div class="introHalf introHalfTop">
-    <div class="introOrb introOrb1"></div>
-    <div class="introInner">
-      <div class="introRing"></div>
-      <div class="introLogo">SfymmiK</div>
-      <div class="introLine"></div>
-      <div class="introText">build / break / ship</div>
-    </div>
-  </div>
-
-  <div class="introHalf introHalfBottom">
-    <div class="introOrb introOrb2"></div>
-    <div class="introInner">
-      <div class="introRing"></div>
-      <div class="introLogo">SfymmiK</div>
-      <div class="introLine"></div>
-      <div class="introText">build / break / ship</div>
-    </div>
-  </div>
-
-  <div class="introSlash"></div>
-  <div class="introImpact"></div>
-</div>
-  <div class="pageGlow"></div>
-
-  <div class="site">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-      <div class="sidebarInner">
-        <div class="brandCard">
-          <div class="brandTop">
-            <img class="pfp" src="images/pfp.jpg" alt="Profile picture" />
-            <div class="brandText">
-              <div class="brandName">SfymmiK</div>
-              <div class="brandTag">build &amp; break</div>
-            </div>
-          </div>
-
-          <p class="brandIntro">
-            16-year-old developer from Poland focused on Linux, self-hosting,
-            web interfaces, and low-level experiments.
-          </p>
-        </div>
-
-        <nav class="nav" aria-label="Main navigation">
-          <a class="navLink" href="#about">About</a>
-          <a class="navLink" href="#projects">Projects</a>
-          <a class="navLink" href="#stack">Stack</a>
-          <a class="navLink" href="#me">Links</a>
-          <a class="navLink" href="#contact">Contact</a>
-        </nav>
-
-        <div class="quickLinks" aria-label="Quick links">
-          <a class="pill" href="https://github.com/SFYMMIK" target="_blank" rel="noreferrer">GitHub</a>
-          <a class="pill" href="https://codeberg.org/SFYMMIK" target="_blank" rel="noreferrer">Codeberg</a>
-          <a class="pill" href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">Forgejo</a>
-          <a class="pill" href="mailto:szymongrajner@sfymmik.xyz">Email</a>
-        </div>
-
-        <section class="panel rpcCard rpcCardCompact" aria-label="Discord presence">
-          <div class="rpcCompactTop">
-            <span class="dot offline" id="rpcDot" aria-hidden="true"></span>
-            <span class="rpcStatus" id="rpcStatusText">Loading…</span>
-          </div>
-
-          <div class="rpcCompactMain">
-            <img id="rpcAvatar" class="rpcAvatar" alt="Discord avatar" />
-
-            <div class="rpcUserText">
-              <div id="rpcName" class="rpcName">—</div>
-              <div id="rpcGame" class="rpcSub">—</div>
-              <div id="rpcDetails" class="rpcDetails">—</div>
-            </div>
-
-            <img id="gameIcon" class="rpcGameIcon rpcGameIconCompact" alt="" />
-          </div>
-
-          <div id="spotifyBlock" class="spotifyBlock spotifyBlockCompact">
-            <div class="spCompactRow">
-              <img id="spCover" class="spCover" alt="Spotify cover" />
-              <div class="spText">
-                <div id="spTrack" class="spTrack">—</div>
-                <div id="spArtist" class="spArtist">—</div>
-              </div>
-            </div>
-
-            <button class="pill pillBtn compactBtn" id="copySpotifyBtn" type="button">
-              Copy Link
-            </button>
-            <div class="miniStatus" id="copySpotifyStatus" aria-live="polite"></div>
-          </div>
-        </section>
-
-        <footer class="sidebarFoot">
-          <span>© <span id="year"></span> SfymmiK</span>
-        </footer>
-      </div>
-    </aside>
-
-    <!-- Main -->
-    <main class="main">
-      <!-- Hero -->
-      <section class="hero">
-        <div class="heroLeft">
-          <div class="eyebrow">Szymon Grajner · SfymmiK</div>
-          <h1>Software &amp; Web Developer</h1>
-          <p class="heroLead">
-            I build fast interfaces, experiment with low-level programming,
-            self-host infrastructure, and keep polishing projects until they feel right.
-          </p>
-
-          <div class="heroActions">
-            <a class="btn btnPrimary" href="#projects">See projects</a>
-            <a class="btn" href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">Forgejo</a>
-            <a class="btn" href="#contact">Contact</a>
-          </div>
-
-          <div class="heroTags" aria-label="Key focuses">
-            <span class="chip">Linux</span>
-            <span class="chip">FreeBSD</span>
-            <span class="chip">Web</span>
-            <span class="chip">Java</span>
-            <span class="chip">MySQL</span>
-            <span class="chip">Self-hosting</span>
-          </div>
-        </div>
-
-        <div class="heroRight">
-          <div class="infoCard">
-            <span class="infoLabel">Current focus</span>
-            <strong>Web tooling, Java, and personal infrastructure</strong>
-            <p>Building projects that are actually useful and refining the UX afterward.</p>
-          </div>
-
-          <div class="infoGrid">
-            <div class="miniInfo">
-              <span class="infoLabel">Platforms</span>
-              <strong>Arch · Gentoo · FreeBSD</strong>
-            </div>
-
-            <div class="miniInfo">
-              <span class="infoLabel">Main git</span>
-              <strong><a href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">git.sfymmik.xyz</a></strong>
-            </div>
-
-            <div class="miniInfo">
-              <span class="infoLabel">Style</span>
-              <strong>Fast, personal, practical</strong>
-            </div>
-
-            <div class="miniInfo">
-              <span class="infoLabel">Approach</span>
-              <strong>Learn by building</strong>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- About -->
-      <section class="section" id="about">
-        <div class="sectionHead">
-          <div>
-            <p class="sectionKicker">About</p>
-            <h2>Personal, technical, and always experimenting</h2>
-          </div>
-          <p class="sectionText">
-            Curiosity-driven projects with a strong focus on usability, performance,
-            and learning in public.
-          </p>
-        </div>
-
-        <div class="cardGrid cardGrid4">
-          <article class="card">
-            <h3>Who I am</h3>
-            <p>
-              I’m Szymon (SfymmiK), a 16-year-old programmer from Poland.
-              I enjoy low-level programming, web development, and building clean user-facing tools.
-            </p>
-          </article>
-
-          <article class="card">
-            <h3>What I build</h3>
-            <p>
-              Personal websites, self-hosted services, experiments, tooling,
-              and interfaces that are simple, fast, and satisfying to use.
-            </p>
-          </article>
-
-          <article class="card">
-            <h3>Languages</h3>
-            <p>
-              I speak Polish and English fluently. My English level is C1/C2.
-            </p>
-          </article>
-
-          <article class="card">
-            <h3>Where to find me</h3>
-            <p>
-              Based in Poland and mostly active online through Discord, Git platforms,
-              and personal infrastructure.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <!-- Projects -->
-      <section class="section" id="projects">
-        <div class="sectionHead">
-          <div>
-            <p class="sectionKicker">Projects</p>
-            <h2>Things I actively build and maintain</h2>
-          </div>
-          <p class="sectionText">
-            A few selected projects that represent my style and interests.
-          </p>
-        </div>
-
-        <div class="projectGrid" id="projectsGrid" aria-live="polite">
-          <a class="card cardLink featuredProject" href="https://lazer.sfymmik.xyz/" target="_blank" rel="noreferrer">
-            <div class="cardTop">
-              <h3>LazerScope</h3>
-              <span class="badge">Featured</span>
-            </div>
-            <p>
-              A vector oscilloscope simulation in the browser with a hardware-inspired feel.
-            </p>
-            <div class="chips">
-              <span class="chip">WebGL2</span>
-              <span class="chip">HTML</span>
-              <span class="chip">CSS</span>
-              <span class="chip">JavaScript</span>
-            </div>
-            <div class="cardFoot">Open project →</div>
-          </a>
-
-          <a class="card cardLink" href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz/" target="_blank" rel="noreferrer">
-            <div class="cardTop">
-              <h3>sfymmik.xyz</h3>
-            </div>
-            <p>
-              My personal website — an evolving portfolio and hub for everything I build.
-            </p>
-            <div class="chips">
-              <span class="chip">HTML</span>
-              <span class="chip">CSS</span>
-              <span class="chip">JavaScript</span>
-            </div>
-            <div class="cardFoot">View repo →</div>
-          </a>
-        </div>
-      </section>
-
-      <!-- Stack -->
-      <section class="section" id="stack">
-        <div class="sectionHead">
-          <div>
-            <p class="sectionKicker">Stack</p>
-            <h2>Tools and platforms I work with</h2>
-          </div>
-          <p class="sectionText">
-            The things I use most, and the areas I keep exploring further.
-          </p>
-        </div>
-
-        <div class="cardGrid cardGrid3">
-          <article class="card">
-            <h3>Languages &amp; tech</h3>
-            <div class="chips">
-              <span class="chip">Java</span>
-              <span class="chip">Go</span>
-              <span class="chip">HTML</span>
-              <span class="chip">CSS</span>
-              <span class="chip">JavaScript</span>
-              <span class="chip">MySQL</span>
-            </div>
-            <p class="muted">
-              I prefer learning through real projects instead of isolated toy examples.
-            </p>
-          </article>
-
-          <article class="card">
-            <h3>Platforms</h3>
-            <div class="chips">
-              <span class="chip">Arch Linux</span>
-              <span class="chip">Gentoo</span>
-              <span class="chip">FreeBSD</span>
-            </div>
-            <p class="muted">
-              I like clean setups, tuning systems, and understanding how things work underneath.
-            </p>
-          </article>
-
-          <article class="card">
-            <h3>Focus areas</h3>
-            <ul class="list">
-              <li>Performance and responsiveness</li>
-              <li>UI polish and readability</li>
-              <li>Self-hosting and deployments</li>
-              <li>Low-level learning and experimentation</li>
-            </ul>
-          </article>
-        </div>
-      </section>
-
-      <!-- Links -->
-      <section class="section" id="me">
-        <div class="sectionHead">
-          <div>
-            <p class="sectionKicker">Links</p>
-            <h2>Places where I publish and hang out</h2>
-          </div>
-          <p class="sectionText">
-            Code, mirrors, updates, and platforms I use.
-          </p>
-        </div>
-
-        <div class="cardGrid cardGrid3">
-          <a class="card cardLink" href="https://git.sfymmik.xyz" target="_blank" rel="noreferrer">
-            <h3>Forgejo</h3>
-            <p>@SfymmiK on my own instance</p>
-          </a>
-
-          <a class="card cardLink" href="https://github.com/SFYMMIK" target="_blank" rel="noreferrer">
-            <h3>GitHub</h3>
-            <p>@SFYMMIK</p>
-          </a>
-
-          <a class="card cardLink" href="https://codeberg.org/SfymmiK" target="_blank" rel="noreferrer">
-            <h3>Codeberg</h3>
-            <p>@SfymmiK</p>
-          </a>
-
-          <a class="card cardLink" href="https://x.com/_SfymmiK" target="_blank" rel="noreferrer">
-            <h3>Twitter / X</h3>
-            <p>@_SfymmiK</p>
-          </a>
-
-          <a class="card cardLink" href="https://discord.gg/p7nE5jWPFd" target="_blank" rel="noreferrer">
-            <h3>Lings</h3>
-            <p>Discord server / project space</p>
-          </a>
-
-          <a class="card cardLink" href="https://www.youtube.com/@SFYMMIK" target="_blank" rel="noreferrer">
-            <h3>YouTube</h3>
-            <p>@SFYMMIK</p>
-          </a>
-        </div>
-      </section>
-
-      <!-- Shoutouts -->
-      <section class="section">
-        <div class="sectionHead">
-          <div>
-            <p class="sectionKicker">Shoutouts</p>
-            <h2>People I know and work with</h2>
-          </div>
-        </div>
-
-        <div class="cardGrid cardGrid3">
-          <a class="card cardLink" href="https://sdgscryv.xyz/" target="_blank" rel="noreferrer">
-            <h3>Scryv</h3>
-            <p>Friend</p>
-          </a>
-
-          <a class="card cardLink" href="https://github.com/kemfo4" target="_blank" rel="noreferrer">
-            <h3>kemf</h3>
-            <p>Friend</p>
-          </a>
-
-          <a class="card cardLink" href="https://maydo.uk/" target="_blank" rel="noreferrer">
-            <h3>Maydo</h3>
-            <p>Friend</p>
-          </a>
-        </div>
-      </section>
-
-      <!-- Contact -->
-      <section class="section" id="contact">
-        <div class="sectionHead">
-          <div>
-            <p class="sectionKicker">Contact</p>
-            <h2>Want to reach out?</h2>
-          </div>
-          <p class="sectionText">
-            Collaborations, questions, feedback, or just saying hi.
-          </p>
-        </div>
-
-        <div class="cardGrid cardGrid3">
-          <article class="card">
-            <h3>Email</h3>
-            <p class="muted">Best for anything serious.</p>
-
-            <div class="contactTime">
-              <span>My time: <strong id="myTime">--:--</strong></span>
-              <span>Your time: <strong id="yourTime">--:--</strong></span>
-            </div>
-
-            <p class="muted contactNote">
-              If it’s very late for me, I might reply later or the next day.
-            </p>
-
-            <a class="btn btnPrimary" href="mailto:szymongrajner@sfymmik.xyz">
-              szymongrajner@sfymmik.xyz
-            </a>
-          </article>
-
-          <article class="card">
-            <h3>Discord</h3>
-            <p class="muted">Best for general questions.</p>
-
-            <div class="contactTime contactTimeSingle">
-              <span id="diffText">YOU ARE --H FROM ME</span>
-            </div>
-
-            <p class="muted contactNote">
-              Good for quick messages, casual questions, or project talk.
-            </p>
-
-            <p>@sfymmik</p>
-          </article>
-
-          <article class="card">
-            <h3>Git profiles</h3>
-            <p class="muted">Most of my work is public.</p>
-            <div class="btnRow">
-              <a class="btn" href="https://github.com/SFYMMIK" target="_blank" rel="noreferrer">GitHub</a>
-              <a class="btn" href="https://codeberg.org/SFYMMIK" target="_blank" rel="noreferrer">Codeberg</a>
-              <a class="btn" href="https://git.sfymmik.xyz/SfymmiK" target="_blank" rel="noreferrer">Forgejo</a>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <footer class="mainFoot">
-        <div class="muted">
-          Built with plain HTML, CSS and JavaScript. Fast, simple and deployable anywhere.
-        </div>
-      </footer>
-    </main>
-  </div>
-<script>
-  window.addEventListener("load", () => {
-    const intro = document.getElementById("intro");
-    if (!intro) return;
-
-    setTimeout(() => {
-      intro.remove();
-    }, 3100);
-  });
+  <link rel="icon" type="image/x-icon" href="images/pfp.png">
+  <title>SfymmiK's Webpage</title>
+  <meta http-equiv="Content-Security-Policy"
+  content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' https: data:;
+    connect-src 'self' https://api.lanyard.rest;
+  ">
+  <script>
+window.addEventListener("load", () => {
+  document.body.classList.add("loaded");
+});
 </script>
-  <!-- Scripts -->
-  <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-
-    const sections = document.querySelectorAll("section[id]");
-    const navLinks = document.querySelectorAll(".nav .navLink");
-
-    function setActive(id) {
-      navLinks.forEach((a) => {
-        a.classList.toggle("active", a.getAttribute("href") === `#${id}`);
-      });
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) setActive(entry.target.id);
-        });
-      },
-      { threshold: 0.4 }
-    );
-
-    sections.forEach((s) => observer.observe(s));
-  </script>
-
-  <script>
-    const MY_TIMEZONE = "Europe/Warsaw";
-
-    const elMy = document.getElementById("myTime");
-    const elYour = document.getElementById("yourTime");
-    const elDiff = document.getElementById("diffText");
-
-    function pad2(n) {
-      return String(n).padStart(2, "0");
-    }
-
-    function formatHM(date, timeZone) {
-      const parts = new Intl.DateTimeFormat("en-GB", {
-        timeZone,
-        hour12: false,
-        hour: "2-digit",
-        minute: "2-digit"
-      }).formatToParts(date);
-
-      const get = (t) => parts.find((p) => p.type === t)?.value ?? "00";
-      return `${get("hour")}:${get("minute")}`;
-    }
-
-    function tzOffsetMinutes(date, timeZone) {
-      const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone,
-        timeZoneName: "shortOffset"
-      }).formatToParts(date);
-
-      const tzName = parts.find((p) => p.type === "timeZoneName")?.value || "UTC";
-      const m = tzName.match(/([+-])(\d{1,2})(?::(\d{2}))?/i);
-
-      if (!m) return 0;
-
-      const sign = m[1] === "-" ? -1 : 1;
-      const hh = parseInt(m[2], 10);
-      const mm = parseInt(m[3] || "0", 10);
-
-      return sign * (hh * 60 + mm);
-    }
-
-    function update() {
-      const now = new Date();
-
-      if (elYour) {
-        elYour.textContent = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
-      }
-
-      if (elMy) {
-        elMy.textContent = formatHM(now, MY_TIMEZONE);
-      }
-
-      const myOff = tzOffsetMinutes(now, MY_TIMEZONE);
-      const yourOff = -now.getTimezoneOffset();
-
-      const diffHours = Math.round((yourOff - myOff) / 60);
-      const signStr = diffHours >= 0 ? `+${diffHours}` : `${diffHours}`;
-
-      if (elDiff) {
-        elDiff.textContent = `You are ${signStr}h from me`;
-      }
-    }
-
-    update();
-    setInterval(update, 1000);
-  </script>
-
   <script src="js/rpc.js" defer></script>
+  <script src="js/BMPR/bmpr.js"></script> <!-- BMP renderer made by me :) -->
+</head>
+<body id="page">
+  <main class="content">
+    <header class="up wrap">
+      <div class="avatar-wrap">
+        <img class="avatar" src="images/pfp.png" max-width="256" max-height="256" loading="lazy" />
+      </div>
+      <h1 style="color: #7928ca;">SfymmiK</h1>
+      <nav class="linki">
+        <a class="upper-buttons" href="https://github.com/SFYMMIK" target="_blank">GitHub (Mirror for git.sfymmik.xyz)</a>
+        <a class="upper-buttons" href="https://git.sfymmik.xyz/SfymmiK" target="_blank">git.sfymmik.xyz</a>
+        <a class="upper-buttons" href="https://www.youtube.com/@SFYMMIK" target="_blank">YouTube</a>
+        <a class="upper-buttons" onclick="alert('sfymmik')">Discord(user)</a>
+        <a class="upper-buttons" href="https://steamcommunity.com/id/JustSfymmiK/" target="_blank">Steam</a>
+        <a class="upper-buttons" href="https://namemc.com/profile/a7ef9121-81ed-4291-b4d6-cfc1105bcb5a" target="_blank">Minecraft (namemc)</a>
+        <a class="upper-buttons" href="https://stats.fm/sfymmik" target="_blank">Spotify (stats.fm)</a>
+      </nav>
+    </header>
+    <hr id="line" />
+    <h1>Basic Info:</h1>
+    <h2>Pronouns: He/Him</h2>
+    <h2><a href="https://en.wikipedia.org/wiki/Asexuality">Asexual</a></h2>
+    <div class="rpc-card" id="rpc">
+      <div class="rpc-top">
+        <div class="rpc-profile">
+          <img class="rpc-avatar" id="rpcAvatar" alt="Avatar">
+          <div class="rpc-who">
+            <div class="rpc-title">(Discord) Activity</div>
+            <div class="rpc-name" id="rpcName">—</div>
+          </div>
+        </div>
+        <div class="rpc-pill">
+          <span class="rpc-dot" id="rpcDot"></span>
+          <span class="rpc-status-text" id="rpcStatusText">Connecting…</span>
+        </div>
+      </div>
+      <div class="rpc-block">
+        <div class="rpc-label">Playing</div>
+        <div class="rpc-line">
+          <img class="rpc-icon" id="gameIcon" alt="" hidden>
+          <div>
+            <div class="rpc-value" id="rpcGame">—</div>
+            <div class="rpc-sub" id="rpcDetails">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="rpc-sep"></div>
+      <div class="rpc-block spotify">
+        <div class="rpc-label">(Spotify) Listening to, right in this moment</div>
+        <div class="rpc-line">
+          <img class="rpc-cover" id="spCover" alt="" hidden>
+          <div>
+            <div class="rpc-value" id="spTrack">—</div>
+            <div class="rpc-sub" id="spArtist">—</div>
+            <div class="sp-actions">
+              <button class="sp-copy-btn" id="copySpotifyBtn" disabled>Copy Spotify link</button>
+              <span class="sp-copy-status" id="copySpotifyStatus"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr id="line" />
+    <h2>I'm a 15 year old programmer, and I'm also a Unix-Like Operating Systems enjoyer • building &amp breaking things</h2>
+    <h2>I mainly work on web development and low-level experiments, often sharing my projects for others to explore</h2>
+    <h2>I use Arch/MX Linux (couldn't imagine working anywhere else)</h2>
+    <h2>And I also play some games except just code, like:</h2>
+    <ul>
+      <li><a href="https://store.steampowered.com/app/730/CounterStrike_2/" target="_blank">Counter-Strike 2</a></li>
+      <li><a href="https://www.minecraft.net/" target="_blank">Minecraft</a></li>
+      <li><a href="https://store.steampowered.com/app/3164500/Schedule_I/" target="_blank">Schedule 1</a></li>
+      <li><a href="https://osu.ppy.sh/" target="_blank">Osu (Lazer)</a></li>
+    </ul>
+    <h2>Some of my current work includes:</h2>
+    <ul>
+      <li><a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz" target="_blank">sfymmik.xyz</a></li>
+      <li><a href="https://github.com/SFYMMIK/web.sfymmik" target="_blank">web.sfymmik</a></li>
+      <li><a href="https://git.sfymmik.xyz/SfymmiK/LazerScope/" target="_blank"></a></li>
+      <li><a href="https://github.com/SFYMMIK/sp3_code" target="_blank">sp3_code</a></li>
+    </ul>
+    <div class="spacer"></div>
+    <div id="fieldset-ppl-pos">
+      <fieldset id="fieldset-ppl" style="max-width: 400px;">
+        <legend style="font-size: 30px;">Friends / people i know</legend>
+        <a class="badges" href="https://maydo.uk">
+          <img src="images/maydo.png" alt="Maydo.uk" width="88" height="31">
+        </a>
+      </fieldset>
+    </div>
+      <p>If you like my work/website you can also mention my website via 88×31 button of mine, with this piece of html code:</p>
+      <pre><code>
+&lt;a href="https://sfymmik.xyz/"&gt;
+  &lt;img
+    src="https://sfymmik.xyz/images/button.png"
+    alt="SfymmiK 88x31 button"
+    title="SfymmiK&#39;s Webpage"
+    width="88"
+    height="31"
+    style="
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: -webkit-optimize-contrast;
+      -ms-interpolation-mode: nearest-neighbor;
+      display: block;
+    "
+  /&gt;
+&lt;/a&gt;
+      </code></pre>
+      <p>i know its a lot of css there for a button but it should look nicely pixelated and crisp.</p>
+  </main>
+  <footer>
+    <hr id="line-footer" />
+    <div class="badges">
+      <a href="https://www.linux.org/pages/download/" target="_blank"><img src="images/madeon_linux.gif" alt="Linux" width="88" height="31"></a>
+      <a href="https://archlinux.org" target="_blank"><img src="images/arch-badge.png" alt="Arch Linux" width="88" height="31"></a>
+      <a href="https://sfymmik.xyz/" target="_blank"><bmp-img src="images/button.bmp" alt="SfymmiK" width="88" height="31"></bmp-img></a>
+      <a href="https://gentoo.org" target="_blank"><img src="images/gentoo-badge.png" alt="Gentoo" width="88" height="31"></a>
+      <a href="https://freebsd.org" target="_blank"><img src="images/freebsd-badge.png" alt="FreeBSD" width="88" height="31"></a>
+    </div>
+    <div class="spacer"></div>
+    <a href="https://ko-fi.com/sfymmik/tip" target="_blank"><img id="kofi" src="images/kofi.jpg" /></a>
+    <div class="spacer-lg"></div>
+    <img src="images/linux.png" alt="Linux" />
+    <img src="images/thinkpad.png" alt="IBM ThinkPad" />
+    <div class="spacer"></div>
+    <p class="footer-text">
+      Made By Szymon Grajner (SfymmiK)
+      <a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz">
+        <img id="github-svg" src="images/github-svg.svg">
+      </a>
+    </p>
+    <div class="spacer"></div>
+    <p class="footer-text">
+      Licensed under the
+      <a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz/raw/branch/main/LICENSE" target="_blank">Apache 2.0 License</a>
+    </p>
+    <div class="spacer"></div>
+  </footer>
 </body>
 </html>
