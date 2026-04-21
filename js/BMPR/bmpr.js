@@ -12,13 +12,13 @@
     static get observedAttributes() {
       return [
         "src",
-        "alt",
-        "width",
-        "height",
-        "aria-label",
-        "role",
-        "title",
-        "draggable"
+ "alt",
+ "width",
+ "height",
+ "aria-label",
+ "role",
+ "title",
+ "draggable"
       ];
     }
 
@@ -32,22 +32,65 @@
       this._naturalHeight = 0;
       this._decoded = false;
 
+      this.attachShadow({ mode: "open" });
+
       this.canvas = document.createElement("canvas");
-      this.ctx = this.canvas.getContext("2d", { alpha: true, willReadFrequently: false });
+      this.ctx = this.canvas.getContext("2d", {
+        alpha: true,
+        willReadFrequently: false
+      });
+
       this.fallback = document.createElement("span");
+      this.styleEl = document.createElement("style");
 
       this.canvas.className = "bmpr-canvas";
       this.fallback.className = "bmpr-fallback";
 
       this.canvas.setAttribute("aria-hidden", "true");
 
-      this.fallback.style.display = "none";
-      this.fallback.style.font = "14px sans-serif";
-      this.fallback.style.color = "#666";
+      this.styleEl.textContent = `
+      :host {
+        display: inline-block;
+        overflow: hidden;
+        vertical-align: bottom;
+        line-height: 0;
+        position: relative;
+      }
 
-      this.replaceChildren(this.canvas, this.fallback);
+      .bmpr-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        max-height: none;
+        min-width: 0;
+        min-height: 0;
+        border: 0;
+        margin: 0;
+        padding: 0;
+        object-fit: fill;
+        image-rendering: pixelated;
+        vertical-align: bottom;
+        pointer-events: none;
+      }
 
-      this._applyInternalStyles();
+      .bmpr-fallback {
+        display: none;
+        font: 14px sans-serif;
+        color: #666;
+        line-height: normal;
+      }
+
+      :host([error]) .bmpr-canvas {
+        display: none !important;
+      }
+
+      :host([error]) .bmpr-fallback {
+        display: inline !important;
+      }
+      `;
+
+      this.shadowRoot.append(this.styleEl, this.canvas, this.fallback);
     }
 
     connectedCallback() {
@@ -60,7 +103,7 @@
       this.updateSize();
 
       if (this.src) {
-        this.loadBMP();
+        this.loadBMP().catch(() => {});
       } else {
         this._setEmptyState();
       }
@@ -70,7 +113,7 @@
       if (oldValue === newValue) return;
 
       if (name === "src") {
-        if (this.isConnected) this.loadBMP();
+        if (this.isConnected) this.loadBMP().catch(() => {});
         return;
       }
 
@@ -165,25 +208,6 @@
       this.draggable = this.getAttribute("draggable") === "true";
     }
 
-    _applyInternalStyles() {
-      Object.assign(this.canvas.style, {
-        display: "block",
-        width: "100%",
-        height: "100%",
-        maxWidth: "none",
-        maxHeight: "none",
-        minWidth: "0",
-        minHeight: "0",
-        border: "0",
-        margin: "0",
-        padding: "0",
-        objectFit: "fill",
-        imageRendering: "pixelated",
-        verticalAlign: "bottom",
-        pointerEvents: "none"
-      });
-    }
-
     updateAccessibility() {
       const alt = this.alt;
       this.fallback.textContent = alt;
@@ -242,6 +266,7 @@
       this._naturalHeight = 0;
       this.canvas.width = 1;
       this.canvas.height = 1;
+      this.removeAttribute("error");
       this.canvas.style.display = "none";
       this.fallback.style.display = this.alt ? "inline" : "none";
     }
@@ -278,7 +303,7 @@
       try {
         this._clearErrorState();
 
-        const res = await fetch(src);
+        const res = await fetch(src, { mode: "cors" });
         if (!res.ok) {
           throw new Error(`BMPR: Failed to fetch BMP (${res.status})`);
         }
@@ -298,12 +323,10 @@
         this._decoded = true;
 
         this.updateSize();
-
         this.dispatchEvent(new Event("load"));
       } catch (err) {
         if (loadId !== this._loadId) return;
         this._setErrorState(err);
-        throw err;
       }
     }
 
@@ -360,12 +383,12 @@
 
       return {
         width,
-        height,
-        bpp,
-        topDown,
-        pixelOffset,
-        palette,
-        dv
+ height,
+ bpp,
+ topDown,
+ pixelOffset,
+ palette,
+ dv
       };
     }
 
