@@ -127,6 +127,13 @@ h2, li {
   & a:visited { color: cadetblue; }
 }
 
+p a {
+  color: cornflowerblue;
+}
+p a:visited {
+  color: cadetblue;
+}
+
 /* ===== Github logo svg ===== */
 #github-svg { max-height: 15px; max-width: auto; }
 
