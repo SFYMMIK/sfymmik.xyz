@@ -295,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
               renderLyricsLines(lyrics);
               startLyricsTicker();
             } else {
-              lyricsStatus.textContent = "No synced lyrics available for this track";
+              lyricsStatus.textContent = "This song either does not have lyrics, or they are not avalible right now...";
             }
           });
         }
