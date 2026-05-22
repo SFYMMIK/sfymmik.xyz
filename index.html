@@ -81,6 +81,13 @@ window.addEventListener("load", () => {
         <div class="rpc-label">(Spotify) Listening to, in this moment..</div>
         <div class="rpc-line">
           <img class="rpc-cover" id="spCover" alt="" hidden>
+          <div class="sp-equalizer" id="spEqualizer" hidden>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+          </div>
           <div>
             <div class="rpc-value" id="spTrack">—</div>
             <div class="rpc-sub" id="spArtist">—</div>
@@ -95,7 +102,7 @@ window.addEventListener("load", () => {
       <div id="lyricsSection" hidden>
         <div class="rpc-sep"></div>
         <div class="rpc-block">
-          <div class="rpc-label">Lyrics (Real-time)</div>
+          <div class="rpc-label">Lyrics</div>
           <p id="lyricsStatus"></p>
           <div id="lyricsContainer"></div>
         </div>

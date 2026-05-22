@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const spArtist = document.getElementById("spArtist");
   const copySpotifyBtn = document.getElementById("copySpotifyBtn");
   const copySpotifyStatus = document.getElementById("copySpotifyStatus");
+  const spEqualizer = document.getElementById("spEqualizer");
   // ---- Lyrics Elements
   const lyricsSection = document.getElementById("lyricsSection");
   const lyricsContainer = document.getElementById("lyricsContainer");
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
     gameIcon, gameEl, detailsEl,
     spCover, spTrack, spArtist,
     copySpotifyBtn, copySpotifyStatus,
+    spEqualizer,
     lyricsSection, lyricsContainer, lyricsStatus
   };
   for (const [k, v] of Object.entries(required)) {
@@ -272,6 +274,8 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           spCover.hidden = true;
         }
+        // Show equalizer bars
+        spEqualizer.hidden = false;
         // ---- Lyrics sync ----
         spotifyStartMs = data.spotify.timestamps?.start ?? null;
         if (data.spotify.track_id !== lastLyricsTrackId) {
@@ -302,6 +306,8 @@ document.addEventListener("DOMContentLoaded", () => {
         spCover.hidden = true;
         currentSpotifyUrl = null;
         setCopyUi({ enabled: false, status: "Not listening" });
+        // Hide equalizer bars
+        spEqualizer.hidden = true;
         clearLyrics();
       }
       // Game + Details + Icon
