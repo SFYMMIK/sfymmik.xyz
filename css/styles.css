@@ -453,6 +453,9 @@ border-radius: 6px;
   align-self: center;
   flex: 0 0 auto;
 }
+.sp-equalizer[hidden] {
+  display: none;
+}
 .eq-bar {
   display: block;
   width: 4px;

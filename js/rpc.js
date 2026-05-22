@@ -295,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
               renderLyricsLines(lyrics);
               startLyricsTicker();
             } else {
-              lyricsStatus.textContent = "This song either does not have lyrics, or they are not avalible right now...";
+              lyricsStatus.textContent = "No synced lyrics available for this track";
             }
           });
         }
@@ -335,6 +335,7 @@ document.addEventListener("DOMContentLoaded", () => {
       spTrack.textContent = "Not listening to anything right now";
       spArtist.textContent = "—";
       spCover.hidden = true;
+      spEqualizer.hidden = true;
       currentSpotifyUrl = null;
       setCopyUi({ enabled: false, status: "Error" });
       clearLyrics();
