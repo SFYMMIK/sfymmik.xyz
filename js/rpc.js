@@ -211,9 +211,13 @@ document.addEventListener("DOMContentLoaded", () => {
           el.style.opacity = dist <= 1 ? "0.55" : dist <= 3 ? "0.3" : "0.15";
         }
       });
-      // Scroll active line to the vertical centre of the container
+      // Scroll active line to center WITHIN the container only (never moves the page)
       if (idx >= 0 && lines[idx]) {
-        lines[idx].scrollIntoView({ behavior: "smooth", block: "center" });
+        const lineTop = lines[idx].offsetTop;
+        const lineHeight = lines[idx].offsetHeight;
+        const containerHeight = lyricsContainer.clientHeight;
+        const scrollTarget = lineTop - (containerHeight / 2) + (lineHeight / 2);
+        lyricsContainer.scrollTo({ top: scrollTarget, behavior: "smooth" });
       }
     }
     lyricsRafId = requestAnimationFrame(tickLyrics);
