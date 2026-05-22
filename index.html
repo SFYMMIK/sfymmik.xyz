@@ -21,7 +21,7 @@
     script-src 'self' 'unsafe-inline';
     style-src 'self' 'unsafe-inline';
     img-src 'self' https: data:;
-    connect-src 'self' https://api.lanyard.rest;
+    connect-src 'self' https://api.lanyard.rest https://lrclib.net;
   ">
   <script>
 window.addEventListener("load", () => {
@@ -91,6 +91,15 @@ window.addEventListener("load", () => {
           </div>
         </div>
       </div>
+      <!-- ===== Synced Lyrics ===== -->
+      <div id="lyricsSection" hidden>
+        <div class="rpc-sep"></div>
+        <div class="rpc-block">
+          <div class="rpc-label">Lyrics</div>
+          <p id="lyricsStatus"></p>
+          <div id="lyricsContainer"></div>
+        </div>
+      </div>
     </div>
     <hr id="line" />
     <h2>I'm a 16 year old programmer, and I'm also a Unix-Like Operating Systems enjoyer • building &amp breaking things</h2>
@@ -158,7 +167,7 @@ window.addEventListener("load", () => {
     <p class="footer-text">
       Made By Szymon Grajner (SfymmiK)
       <a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz" target="_blank">
-        <img id="github-svg" src="images/git.svg">
+        <img id="git-svg" src="images/git.svg">
       </a>
     </p>
     <div class="spacer"></div>
