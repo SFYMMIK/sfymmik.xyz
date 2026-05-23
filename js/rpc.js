@@ -342,7 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   update();
-  setInterval(update, 3000);
+  setInterval(update, 1000);
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) update();
   });
