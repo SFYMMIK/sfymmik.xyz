@@ -407,6 +407,8 @@ text-align: center;
 .upper-buttons:nth-child(6) { animation-delay: 1.9s; }
 .upper-buttons:nth-child(7) { animation-delay: 2.1s; }
 .upper-buttons:nth-child(8) { animation-delay: 2.3s; }
+.upper-buttons:nth-child(9) { animation-delay: 2.5s; }
+
 /* ═══════════════════════════════════════════════════════════
  *  SCROLL-REVEAL SYSTEM
  *  Elements start invisible/offset and spring into view
