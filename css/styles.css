@@ -45,7 +45,6 @@ body {
   radial-gradient(ellipse at 50% 85%, rgba(0, 195, 255, 0.03) 0%, transparent 55%),
   radial-gradient(ellipse at 70% 60%, rgba(30, 231, 180, 0.02) 0%, transparent 45%);
   background-size: 200% 200%;
-  animation: bg-drift 25s ease-in-out infinite alternate;
 }
 @keyframes bg-drift {
   0%   { background-position: 0% 0%; }
@@ -67,6 +66,7 @@ body::before {
                                         transparent 3px
   );
   mix-blend-mode: multiply;
+  will-change: auto;
 }
 /* ===== CRT tube vignette ===== */
 body::after {
@@ -85,7 +85,7 @@ body {
   padding-block: 15px 30px;
 }
 body.loaded {
-  filter: blur(0);
+  filter: blur(0px);
   opacity: 1;
   animation: crt-flicker 8s infinite, bg-drift 25s ease-in-out infinite alternate;
 }
@@ -310,7 +310,7 @@ text-align: center;
   0 0 0 2px rgba(0, 195, 255, 0.5),
   0 0 18px rgba(0, 110, 255, 0.18),
   0 0 40px rgba(30, 184, 231, 0.08);
-  animation: slideUpFade 0.4s ease-out forwards, avatar-breathe 4s ease-in-out infinite 1s;
+  animation: slideUpFade 0.4s ease-out both, avatar-breathe 4s ease-in-out infinite 1s;
   transition: transform 0.4s cubic-bezier(0.05, 0.9, 0.1, 1.05), box-shadow 0.4s ease;
 }
 .avatar:hover {
@@ -363,7 +363,7 @@ text-align: center;
   box-shadow 0.35s ease,
   background 0.3s ease;
   opacity: 0;
-  animation: slideUpFade 0.8s ease-out forwards;
+  animation: slideUpFade 0.8s ease-out both;
   -webkit-font-smoothing: none;
   will-change: transform;
   position: relative;
@@ -426,12 +426,11 @@ text-align: center;
   opacity 0.7s ease-out,
   transform 0.7s var(--spring),
   filter 0.7s ease-out;
-  will-change: opacity, transform, filter;
 }
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
-  filter: blur(0);
+  filter: blur(0px);
 }
 /* Direction variants */
 .reveal-left {
@@ -451,6 +450,32 @@ text-align: center;
 }
 .reveal-scale.visible {
   transform: scale(1);
+}
+/* Pop-in: scale up from small + slight rotation — for card-like elements */
+.reveal-pop {
+  transform: scale(0.6) rotate(-2deg);
+  filter: blur(10px);
+  transition:
+  opacity 0.8s ease-out,
+  transform 0.8s var(--spring-bouncy),
+  filter 0.6s ease-out;
+}
+.reveal-pop.visible {
+  transform: scale(1) rotate(0deg);
+  filter: blur(0px);
+}
+/* Code slide-in: from left with a wider sweep */
+.reveal-code {
+  transform: translateX(-60px) scale(0.95);
+  filter: blur(8px);
+  transition:
+  opacity 0.9s ease-out,
+  transform 0.9s var(--spring),
+  filter 0.7s ease-out;
+}
+.reveal-code.visible {
+  transform: translateX(0) scale(1);
+  filter: blur(0px);
 }
 /* Stagger delays for children inside a reveal group */
 .stagger-1  { transition-delay: 0.05s !important; }
@@ -511,7 +536,7 @@ text-align: center;
  *  3-D TILT targets
  *  ═══════════════════════════════════════════════════════════ */
 [data-tilt] {
-  transition: transform 0.1s ease-out, box-shadow 0.4s ease;
+  transition: box-shadow 0.4s ease;
   will-change: transform;
   transform-style: preserve-3d;
 }
@@ -546,8 +571,8 @@ text-align: center;
 /* ===== Float-in with spring overshoot ===== */
 @keyframes float-in {
   0%   { opacity: 0; transform: translateY(50px) scale(0.92); filter: blur(8px); }
-  70%  { opacity: 1; transform: translateY(-4px) scale(1.01); filter: blur(0); }
-  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+  70%  { opacity: 1; transform: translateY(-4px) scale(1.01); filter: blur(0px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0px); }
 }
 /* ===== Christmas snow effect ===== */
 @keyframes snow {
@@ -975,6 +1000,58 @@ hr.reveal.visible {
   .rpc-title {
     font-size: 22px;
   }
+  /* ── Mobile perf: lighten CRT scanlines ── */
+  body::before {
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.3) 0px,
+      rgba(0, 0, 0, 0.3) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+    mix-blend-mode: normal;
+    opacity: 0.7;
+  }
+  /* ── Mobile perf: kill expensive body animations ── */
+  body.loaded {
+    animation: none;
+  }
+  /* ── Mobile perf: remove backdrop-filter ── */
+  .rpc-card,
+  .rpc-pill,
+  .upper-buttons,
+  pre {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .rpc-card {
+    background: rgba(5, 10, 5, 0.88);
+    animation: none;
+  }
+  .rpc-pill {
+    background: rgba(5, 10, 5, 0.8);
+  }
+  .upper-buttons {
+    background: rgba(5, 10, 5, 0.75);
+  }
+  pre {
+    background: rgba(5, 10, 5, 0.85);
+  }
+  #fieldset-ppl {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background:
+    linear-gradient(rgba(5, 10, 5, 0.9), rgba(5, 10, 5, 0.9)) padding-box,
+    linear-gradient(to right, #1eb8e7, #196394) border-box;
+  }
+  /* ── Mobile perf: smooth upscaled canvas ── */
+  #particles {
+    image-rendering: auto;
+  }
+  /* ── Mobile perf: simplify vignette ── */
+  body::after {
+    background: radial-gradient(ellipse at center, transparent 65%, rgba(0,0,0,0.55) 100%);
+  }
 }
 @media (max-width: 640px) {
   #page, main.content, body > main { max-width: 95%; }
@@ -1000,8 +1077,15 @@ hr.reveal.visible {
     transform: translateY(20px);
     filter: blur(3px);
   }
+  .reveal.visible {
+    filter: blur(0px);
+  }
   .reveal-left { transform: translateX(-20px) translateY(0); }
   .reveal-right { transform: translateX(20px) translateY(0); }
+  .reveal-pop { transform: scale(0.8) rotate(-1deg); filter: blur(4px); }
+  .reveal-pop.visible { filter: blur(0px); }
+  .reveal-code { transform: translateX(-30px) scale(0.97); filter: blur(4px); }
+  .reveal-code.visible { filter: blur(0px); }
 }
 @media (max-width: 480px) {
   .upper-buttons {

@@ -55,6 +55,9 @@
       this.ctx = canvas.getContext("2d");
       this.pts = [];
       this.mouse = { x: -9999, y: -9999 };
+      this.mobile = window.innerWidth < 768 || "ontouchstart" in window;
+      this.scale = this.mobile ? 0.5 : 1;
+      this._skipFrame = false;
       this._resize();
       this._seed();
       this._bind();
@@ -62,13 +65,21 @@
     }
 
     _resize() {
-      this.w = this.cvs.width = window.innerWidth;
-      this.h = this.cvs.height = window.innerHeight;
+      this.w = window.innerWidth;
+      this.h = window.innerHeight;
+      this.cvs.width = Math.round(this.w * this.scale);
+      this.cvs.height = Math.round(this.h * this.scale);
+      if (this.scale !== 1) {
+        this.cvs.style.width = this.w + "px";
+        this.cvs.style.height = this.h + "px";
+      }
     }
 
     _seed() {
       const n =
-      window.innerWidth < 480
+      this.mobile
+      ? Math.floor(CFG.particles.count * 0.2)
+      : window.innerWidth < 480
       ? Math.floor(CFG.particles.count * 0.3)
       : window.innerWidth < 768
       ? Math.floor(CFG.particles.count * 0.55)
@@ -99,21 +110,33 @@
           this._seed();
         }, 200);
       });
-      window.addEventListener("mousemove", (e) => {
-        this.mouse.x = e.clientX;
-        this.mouse.y = e.clientY;
-      });
+      if (!this.mobile) {
+        window.addEventListener("mousemove", (e) => {
+          this.mouse.x = e.clientX;
+          this.mouse.y = e.clientY;
+        });
+      }
     }
 
     _loop() {
+      /* On mobile, skip every other frame for ~30fps */
+      if (this.mobile) {
+        this._skipFrame = !this._skipFrame;
+        if (this._skipFrame) {
+          requestAnimationFrame(() => this._loop());
+          return;
+        }
+      }
+
       const ctx = this.ctx;
+      const s = this.scale;
       const col = CFG.particles.color;
       const cDist = CFG.particles.connectDist;
       const mRad = CFG.particles.mouseRadius;
       const mForce = CFG.particles.mouseForce;
       const now = performance.now() * 0.001;
 
-      ctx.clearRect(0, 0, this.w, this.h);
+      ctx.clearRect(0, 0, this.cvs.width, this.cvs.height);
 
       /* update + draw particles */
       for (const p of this.pts) {
@@ -124,14 +147,16 @@
         if (p.y < -10) p.y = this.h + 10;
         if (p.y > this.h + 10) p.y = -10;
 
-        /* mouse repulsion */
-        const dx = p.x - this.mouse.x;
-        const dy = p.y - this.mouse.y;
-        const d = Math.sqrt(dx * dx + dy * dy);
-        if (d < mRad && d > 0) {
-          const f = ((mRad - d) / mRad) * mForce;
-          p.vx += (dx / d) * f;
-          p.vy += (dy / d) * f;
+        /* mouse repulsion — desktop only */
+        if (!this.mobile) {
+          const dx = p.x - this.mouse.x;
+          const dy = p.y - this.mouse.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < mRad && d > 0) {
+            const f = ((mRad - d) / mRad) * mForce;
+            p.vx += (dx / d) * f;
+            p.vy += (dy / d) * f;
+          }
         }
         p.vx *= 0.985;
         p.vy *= 0.985;
@@ -141,33 +166,42 @@
         Math.sin(now * p.freq * 60 + p.phase) * 0.35 + 0.65;
         const a = p.baseAlpha * pulse;
 
+        /* scaled coordinates */
+        const sx = p.x * s;
+        const sy = p.y * s;
+        const sr = p.r * s;
+
         /* core dot */
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.arc(sx, sy, sr, 0, Math.PI * 2);
         ctx.fillStyle = rgba(col, a);
         ctx.fill();
 
-        /* soft glow halo */
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r * 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = rgba(col, a * 0.12);
-        ctx.fill();
+        /* soft glow halo — desktop only */
+        if (!this.mobile) {
+          ctx.beginPath();
+          ctx.arc(sx, sy, sr * 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = rgba(col, a * 0.12);
+          ctx.fill();
+        }
       }
 
-      /* connection lines */
-      for (let i = 0; i < this.pts.length; i++) {
-        for (let j = i + 1; j < this.pts.length; j++) {
-          const dx = this.pts[i].x - this.pts[j].x;
-          const dy = this.pts[i].y - this.pts[j].y;
-          const d = Math.sqrt(dx * dx + dy * dy);
-          if (d < cDist) {
-            const lineAlpha = (1 - d / cDist) * 0.12;
-            ctx.beginPath();
-            ctx.moveTo(this.pts[i].x, this.pts[i].y);
-            ctx.lineTo(this.pts[j].x, this.pts[j].y);
-            ctx.strokeStyle = rgba(col, lineAlpha);
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
+      /* connection lines — desktop only */
+      if (!this.mobile) {
+        for (let i = 0; i < this.pts.length; i++) {
+          for (let j = i + 1; j < this.pts.length; j++) {
+            const dx = this.pts[i].x - this.pts[j].x;
+            const dy = this.pts[i].y - this.pts[j].y;
+            const d = Math.sqrt(dx * dx + dy * dy);
+            if (d < cDist) {
+              const lineAlpha = (1 - d / cDist) * 0.12;
+              ctx.beginPath();
+              ctx.moveTo(this.pts[i].x * s, this.pts[i].y * s);
+              ctx.lineTo(this.pts[j].x * s, this.pts[j].y * s);
+              ctx.strokeStyle = rgba(col, lineAlpha);
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
           }
         }
       }
