@@ -90,7 +90,7 @@ body.loaded {
   animation: crt-flicker 8s infinite, bg-drift 25s ease-in-out infinite alternate;
 }
 /* ═══════════════════════════════════════════════════════════
- *  PARTICLE CANVAS   (positioned behind everything)
+ *  CRT NOISE CANVAS   (positioned behind everything)
  *  ═══════════════════════════════════════════════════════════ */
 #particles {
 position: fixed;
@@ -99,6 +99,7 @@ z-index: 0;
 pointer-events: none;
 width: 100%;
 height: 100%;
+image-rendering: auto;
 }
 /* ═══════════════════════════════════════════════════════════
  *  CURSOR GLOW   (mouse-following radial light)
@@ -1043,10 +1044,6 @@ hr.reveal.visible {
     background:
     linear-gradient(rgba(5, 10, 5, 0.9), rgba(5, 10, 5, 0.9)) padding-box,
     linear-gradient(to right, #1eb8e7, #196394) border-box;
-  }
-  /* ── Mobile perf: smooth upscaled canvas ── */
-  #particles {
-    image-rendering: auto;
   }
   /* ── Mobile perf: simplify vignette ── */
   body::after {

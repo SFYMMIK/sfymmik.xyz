@@ -3,15 +3,13 @@
 
   /* ═══════════════════════ CONFIG ═══════════════════════ */
   const CFG = {
-    particles: {
-      count: 55,
-      color: [30, 184, 231],      // RGB — alpha added dynamically
-      maxSize: 2.4,
-      minSize: 0.6,
-      speed: 0.25,
-      connectDist: 110,
-      mouseRadius: 160,
-      mouseForce: 0.15,
+    noise: {
+      grainSize: 2,             // pixel size of each grain cell
+      opacity: 0.06,            // base grain opacity
+      tint: [30, 184, 231],     // RGB — subtle cyan tint
+      tintStrength: 0.15,       // how much tint vs pure white noise
+      fps: 12,                  // grain refresh rate
+      mobileFps: 8,             // lower fps on mobile
     },
     reveal: {
       threshold: 0.12,
@@ -48,165 +46,129 @@
     return `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${a})`;
   }
 
-  /* ═══════════════════════ 1. PARTICLES ═══════════════════════ */
-  class ParticleField {
+  /* ═══════════════════════ 1. CRT NOISE / STATIC ═══════════════════════ */
+  class CRTNoise {
     constructor(canvas) {
       this.cvs = canvas;
       this.ctx = canvas.getContext("2d");
-      this.pts = [];
-      this.mouse = { x: -9999, y: -9999 };
       this.mobile = window.innerWidth < 768 || "ontouchstart" in window;
-      this.scale = this.mobile ? 0.5 : 1;
-      this._skipFrame = false;
+      this.scale = this.mobile ? 0.25 : 0.5;
+      this.interval = 1000 / (this.mobile ? CFG.noise.mobileFps : CFG.noise.fps);
+      this.lastFrame = 0;
       this._resize();
-      this._seed();
+      this._buildGrainTile();
       this._bind();
-      this._loop();
+      this._loop(0);
     }
 
     _resize() {
       this.w = window.innerWidth;
       this.h = window.innerHeight;
-      this.cvs.width = Math.round(this.w * this.scale);
-      this.cvs.height = Math.round(this.h * this.scale);
-      if (this.scale !== 1) {
-        this.cvs.style.width = this.w + "px";
-        this.cvs.style.height = this.h + "px";
-      }
+      this.cw = Math.round(this.w * this.scale);
+      this.ch = Math.round(this.h * this.scale);
+      this.cvs.width = this.cw;
+      this.cvs.height = this.ch;
+      this.cvs.style.width = this.w + "px";
+      this.cvs.style.height = this.h + "px";
     }
 
-    _seed() {
-      const n =
-      this.mobile
-      ? Math.floor(CFG.particles.count * 0.2)
-      : window.innerWidth < 480
-      ? Math.floor(CFG.particles.count * 0.3)
-      : window.innerWidth < 768
-      ? Math.floor(CFG.particles.count * 0.55)
-      : CFG.particles.count;
-      this.pts = [];
-      for (let i = 0; i < n; i++) {
-        this.pts.push({
-          x: Math.random() * this.w,
-                      y: Math.random() * this.h,
-                      vx: (Math.random() - 0.5) * CFG.particles.speed,
-                      vy: (Math.random() - 0.5) * CFG.particles.speed,
-                      r:
-                      Math.random() * (CFG.particles.maxSize - CFG.particles.minSize) +
-                      CFG.particles.minSize,
-                      baseAlpha: Math.random() * 0.45 + 0.1,
-                      phase: Math.random() * Math.PI * 2,
-                      freq: Math.random() * 0.015 + 0.005,
-        });
+    /* Create a reusable grain texture tile (128×128) */
+    _buildGrainTile() {
+      const size = 128;
+      this.tile = document.createElement("canvas");
+      this.tile.width = size;
+      this.tile.height = size;
+      this.tileCtx = this.tile.getContext("2d");
+      this.tileSize = size;
+    }
+
+    /* Fill the tile with fresh random noise */
+    _refreshTile() {
+      const ctx = this.tileCtx;
+      const size = this.tileSize;
+      const img = ctx.createImageData(size, size);
+      const d = img.data;
+      const tint = CFG.noise.tint;
+      const ts = CFG.noise.tintStrength;
+
+      for (let i = 0; i < d.length; i += 4) {
+        const v = Math.random() * 255;
+        /* Mix pure white noise with the tint color */
+        d[i]     = Math.round(v * (1 - ts) + tint[0] * ts); // R
+        d[i + 1] = Math.round(v * (1 - ts) + tint[1] * ts); // G
+        d[i + 2] = Math.round(v * (1 - ts) + tint[2] * ts); // B
+        d[i + 3] = Math.round(Math.random() * 255 * CFG.noise.opacity); // A
       }
+      ctx.putImageData(img, 0, 0);
     }
 
     _bind() {
       let resizeTimer;
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-          this._resize();
-          this._seed();
-        }, 200);
+        resizeTimer = setTimeout(() => this._resize(), 200);
       });
-      if (!this.mobile) {
-        window.addEventListener("mousemove", (e) => {
-          this.mouse.x = e.clientX;
-          this.mouse.y = e.clientY;
-        });
-      }
     }
 
-    _loop() {
-      /* On mobile, skip every other frame for ~30fps */
-      if (this.mobile) {
-        this._skipFrame = !this._skipFrame;
-        if (this._skipFrame) {
-          requestAnimationFrame(() => this._loop());
-          return;
-        }
-      }
+    _loop(timestamp) {
+      requestAnimationFrame((t) => this._loop(t));
 
+      /* Throttle to target fps */
+      const delta = timestamp - this.lastFrame;
+      if (delta < this.interval) return;
+      this.lastFrame = timestamp - (delta % this.interval);
+
+      /* Refresh the noise tile with new random data */
+      this._refreshTile();
+
+      /* Tile the noise across the canvas with a random offset for shimmer */
       const ctx = this.ctx;
-      const s = this.scale;
-      const col = CFG.particles.color;
-      const cDist = CFG.particles.connectDist;
-      const mRad = CFG.particles.mouseRadius;
-      const mForce = CFG.particles.mouseForce;
-      const now = performance.now() * 0.001;
+      const s = CFG.noise.stutter;
+      const ox = Math.floor(Math.random() * this.tileSize);
+      const oy = Math.floor(Math.random() * this.tileSize);
 
-      ctx.clearRect(0, 0, this.cvs.width, this.cvs.height);
+      ctx.clearRect(0, 0, this.cw, this.ch);
 
-      /* update + draw particles */
-      for (const p of this.pts) {
-        p.x += p.vx;
-        p.y += p.vy;
-        if (p.x < -10) p.x = this.w + 10;
-        if (p.x > this.w + 10) p.x = -10;
-        if (p.y < -10) p.y = this.h + 10;
-        if (p.y > this.h + 10) p.y = -10;
+      /* ── Base noise fill ── */
+      const pattern = ctx.createPattern(this.tile, "repeat");
+      ctx.save();
+      ctx.translate(ox, oy);
+      ctx.fillStyle = pattern;
+      ctx.fillRect(-this.tileSize, -this.tileSize, this.cw + this.tileSize, this.ch + this.tileSize);
+      ctx.restore();
 
-        /* mouse repulsion — desktop only */
-        if (!this.mobile) {
-          const dx = p.x - this.mouse.x;
-          const dy = p.y - this.mouse.y;
-          const d = Math.sqrt(dx * dx + dy * dy);
-          if (d < mRad && d > 0) {
-            const f = ((mRad - d) / mRad) * mForce;
-            p.vx += (dx / d) * f;
-            p.vy += (dy / d) * f;
-          }
-        }
-        p.vx *= 0.985;
-        p.vy *= 0.985;
+      /* ── CRT stutter / glitch effects ── */
+      const roll = Math.random();
 
-        /* pulsing alpha */
-        const pulse =
-        Math.sin(now * p.freq * 60 + p.phase) * 0.35 + 0.65;
-        const a = p.baseAlpha * pulse;
+      /* 1) Horizontal tear — a few strips shift sideways */
+      if (roll < s.tearChance) {
+        const tearCount = Math.floor(Math.random() * 3) + 1;
+        for (let t = 0; t < tearCount; t++) {
+          const bandH = Math.floor(Math.random() * s.tearMaxHeight * this.scale) + 1;
+          const bandY = Math.floor(Math.random() * this.ch);
+          const shift = (Math.random() - 0.5) * s.tearMaxShift * this.scale;
 
-        /* scaled coordinates */
-        const sx = p.x * s;
-        const sy = p.y * s;
-        const sr = p.r * s;
-
-        /* core dot */
-        ctx.beginPath();
-        ctx.arc(sx, sy, sr, 0, Math.PI * 2);
-        ctx.fillStyle = rgba(col, a);
-        ctx.fill();
-
-        /* soft glow halo — desktop only */
-        if (!this.mobile) {
-          ctx.beginPath();
-          ctx.arc(sx, sy, sr * 3.5, 0, Math.PI * 2);
-          ctx.fillStyle = rgba(col, a * 0.12);
-          ctx.fill();
+          /* Copy the strip, paste it offset */
+          const imgData = ctx.getImageData(0, bandY, this.cw, Math.min(bandH, this.ch - bandY));
+          ctx.putImageData(imgData, Math.round(shift), bandY);
         }
       }
 
-      /* connection lines — desktop only */
-      if (!this.mobile) {
-        for (let i = 0; i < this.pts.length; i++) {
-          for (let j = i + 1; j < this.pts.length; j++) {
-            const dx = this.pts[i].x - this.pts[j].x;
-            const dy = this.pts[i].y - this.pts[j].y;
-            const d = Math.sqrt(dx * dx + dy * dy);
-            if (d < cDist) {
-              const lineAlpha = (1 - d / cDist) * 0.12;
-              ctx.beginPath();
-              ctx.moveTo(this.pts[i].x * s, this.pts[i].y * s);
-              ctx.lineTo(this.pts[j].x * s, this.pts[j].y * s);
-              ctx.strokeStyle = rgba(col, lineAlpha);
-              ctx.lineWidth = 0.5;
-              ctx.stroke();
-            }
-          }
-        }
+      /* 2) Roll bar — a brighter horizontal band like a detuned TV */
+      if (roll < s.rollBarChance) {
+        const barH = Math.floor(Math.random() * s.rollBarMaxHeight * this.scale) + 2;
+        const barY = Math.floor(Math.random() * this.ch);
+        ctx.fillStyle = `rgba(${CFG.noise.tint[0]},${CFG.noise.tint[1]},${CFG.noise.tint[2]},${s.rollBarAlpha})`;
+        ctx.fillRect(0, barY, this.cw, barH);
       }
 
-      requestAnimationFrame(() => this._loop());
+      /* 3) Full-frame horizontal jitter */
+      if (roll < s.jitterChance) {
+        const jx = (Math.random() - 0.5) * s.jitterMaxShift * this.scale;
+        const snap = ctx.getImageData(0, 0, this.cw, this.ch);
+        ctx.clearRect(0, 0, this.cw, this.ch);
+        ctx.putImageData(snap, Math.round(jx), 0);
+      }
     }
   }
 
@@ -425,12 +387,12 @@
       return;
     }
 
-    /* particles — isolated so a canvas error won't block reveals */
+    /* CRT noise — isolated so a canvas error won't block reveals */
     try {
       const cvs = document.getElementById("particles");
-      if (cvs) new ParticleField(cvs);
+      if (cvs) new CRTNoise(cvs);
     } catch (e) {
-      console.warn("[animations] Particle system failed:", e);
+      console.warn("[animations] CRT noise failed:", e);
     }
 
     /* cursor glow — hide on touch devices */
