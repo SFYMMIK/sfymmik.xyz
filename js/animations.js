@@ -10,6 +10,17 @@
       tintStrength: 0.15,       // how much tint vs pure white noise
       fps: 12,                  // grain refresh rate
       mobileFps: 8,             // lower fps on mobile
+      stutter: {
+        shiftChance: 0.10,        // chance per frame of horizontal RGB-split glitch
+        shiftMaxPx: 8,            // max horizontal offset in px
+        shiftDuration: 80,        // ms the shift stays visible
+        colorChance: 0.06,        // chance per frame of hue/saturation distortion
+        colorDuration: 100,       // ms the color glitch stays
+        flashChance: 0.04,        // chance per frame of brightness spike
+        flashDuration: 60,        // ms the flash lasts
+        barChance: 0.07,          // chance per frame of a roll bar
+        barDuration: 120,         // ms the roll bar stays visible
+      },
     },
     reveal: {
       threshold: 0.12,
@@ -57,6 +68,7 @@
       this.lastFrame = 0;
       this._resize();
       this._buildGrainTile();
+      this._buildBarOverlay();
       this._bind();
       this._loop(0);
     }
@@ -102,6 +114,14 @@
       ctx.putImageData(img, 0, 0);
     }
 
+    /* Create the roll bar overlay element */
+    _buildBarOverlay() {
+      this.barEl = document.createElement("div");
+      this.barEl.id = "crt-glitch-bar-overlay";
+      this.barEl.setAttribute("aria-hidden", "true");
+      document.body.appendChild(this.barEl);
+    }
+
     _bind() {
       let resizeTimer;
       window.addEventListener("resize", () => {
@@ -137,37 +157,56 @@
       ctx.fillRect(-this.tileSize, -this.tileSize, this.cw + this.tileSize, this.ch + this.tileSize);
       ctx.restore();
 
-      /* ── CRT stutter / glitch effects ── */
-      const roll = Math.random();
+      /* ── CRT stutter / glitch effects on actual page content ── */
+      const body = document.body;
 
-      /* 1) Horizontal tear — a few strips shift sideways */
-      if (roll < s.tearChance) {
-        const tearCount = Math.floor(Math.random() * 3) + 1;
-        for (let t = 0; t < tearCount; t++) {
-          const bandH = Math.floor(Math.random() * s.tearMaxHeight * this.scale) + 1;
-          const bandY = Math.floor(Math.random() * this.ch);
-          const shift = (Math.random() - 0.5) * s.tearMaxShift * this.scale;
-
-          /* Copy the strip, paste it offset */
-          const imgData = ctx.getImageData(0, bandY, this.cw, Math.min(bandH, this.ch - bandY));
-          ctx.putImageData(imgData, Math.round(shift), bandY);
-        }
+      /* 1) Horizontal shift + RGB split on the page */
+      if (Math.random() < s.shiftChance) {
+        const px = (Math.random() - 0.5) * s.shiftMaxPx * 2;
+        body.style.setProperty("--glitch-x", px + "px");
+        body.classList.add("crt-glitch-shift");
+        setTimeout(() => {
+          body.classList.remove("crt-glitch-shift");
+        }, s.shiftDuration);
       }
 
-      /* 2) Roll bar — a brighter horizontal band like a detuned TV */
-      if (roll < s.rollBarChance) {
-        const barH = Math.floor(Math.random() * s.rollBarMaxHeight * this.scale) + 2;
-        const barY = Math.floor(Math.random() * this.ch);
-        ctx.fillStyle = `rgba(${CFG.noise.tint[0]},${CFG.noise.tint[1]},${CFG.noise.tint[2]},${s.rollBarAlpha})`;
-        ctx.fillRect(0, barY, this.cw, barH);
+      /* 2) Color distortion — hue shift + saturation */
+      if (Math.random() < s.colorChance) {
+        const hue = Math.floor(Math.random() * 60 - 30);
+        body.style.setProperty("--glitch-hue", hue + "deg");
+        body.classList.add("crt-glitch-color");
+        setTimeout(() => {
+          body.classList.remove("crt-glitch-color");
+        }, s.colorDuration);
       }
 
-      /* 3) Full-frame horizontal jitter */
-      if (roll < s.jitterChance) {
-        const jx = (Math.random() - 0.5) * s.jitterMaxShift * this.scale;
-        const snap = ctx.getImageData(0, 0, this.cw, this.ch);
-        ctx.clearRect(0, 0, this.cw, this.ch);
-        ctx.putImageData(snap, Math.round(jx), 0);
+      /* 3) Brightness flash — voltage surge */
+      if (Math.random() < s.flashChance) {
+        body.classList.add("crt-glitch-flash");
+        setTimeout(() => {
+          body.classList.remove("crt-glitch-flash");
+        }, s.flashDuration);
+      }
+
+      /* 4) Visible roll bar across screen */
+      if (Math.random() < s.barChance) {
+        const y = Math.floor(Math.random() * 100);
+        const h = Math.floor(Math.random() * 50) + 20;
+        this.barEl.style.top = y + "%";
+        this.barEl.style.height = h + "px";
+        this.barEl.classList.add("active");
+        setTimeout(() => {
+          this.barEl.classList.remove("active");
+        }, s.barDuration);
+      }
+
+      /* 5) Noise canvas burst — brighter static during any glitch */
+      if (body.classList.contains("crt-glitch-shift") ||
+          body.classList.contains("crt-glitch-flash")) {
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = `rgba(${CFG.noise.tint[0]},${CFG.noise.tint[1]},${CFG.noise.tint[2]},1)`;
+        ctx.fillRect(0, 0, this.cw, this.ch);
+        ctx.globalAlpha = 1.0;
       }
     }
   }
