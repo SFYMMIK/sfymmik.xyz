@@ -1,6 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
   const USER_ID = "764834366161420299";
+  const WS_URL = "wss://api.lanyard.rest/socket";
   const API_URL = `https://api.lanyard.rest/v1/users/${USER_ID}`;
+
   // ---- Elements
   const dot = document.getElementById("rpcDot");
   const statusText = document.getElementById("rpcStatusText");
@@ -19,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const lyricsSection = document.getElementById("lyricsSection");
   const lyricsContainer = document.getElementById("lyricsContainer");
   const lyricsStatus = document.getElementById("lyricsStatus");
+
   // ---- Sanity check
   const required = {
     dot, statusText, avatar, nameEl,
@@ -30,10 +33,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   for (const [k, v] of Object.entries(required)) {
     if (!v) {
-      console.error(`[Lanyard widget] Missing element for id="${k}". Check your HTML IDs.`);
+      console.error(`[Lanyard] Missing element for id="${k}". Check your HTML IDs.`);
       return;
     }
   }
+
   // ---- Status
   const statusColor = {
     online: "#3ba55d",
@@ -41,6 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dnd: "#ed4245",
     offline: "#747f8d"
   };
+
   // ---- Spotify link copy
   let currentSpotifyUrl = null;
   function spotifyTrackUrl(trackId) {
@@ -72,16 +77,18 @@ document.addEventListener("DOMContentLoaded", () => {
       setCopyUi({ enabled: true, status: "Copied ✅" });
       setTimeout(() => setCopyUi({ enabled: true, status: "" }), 1200);
     } catch (e) {
-      console.error("[Lanyard widget] copy failed:", e);
+      console.error("[Lanyard] copy failed:", e);
       setCopyUi({ enabled: true, status: "Copy failed ❌" });
     }
   });
+
   function statusLabel(s) {
     return s === "online" ? "Online"
-    : s === "idle" ? "Idle"
-    : s === "dnd" ? "Do Not Disturb"
-    : "Offline";
+      : s === "idle" ? "Idle"
+      : s === "dnd" ? "Do Not Disturb"
+      : "Offline";
   }
+
   // ---- Discord Avatar
   function discordAvatarUrl(user) {
     if (user?.avatar) {
@@ -91,11 +98,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const idx = Number.isFinite(disc) ? (disc % 5) : 0;
     return `https://cdn.discordapp.com/embed/avatars/${idx}.png`;
   }
+
   function pickGame(activities = []) {
     return activities.find(a => a.type === 0 && (a.name || "").toLowerCase() !== "spotify")
-    || activities.find(a => a.type === 0)
-    || null;
+      || activities.find(a => a.type === 0)
+      || null;
   }
+
   function activityAssetUrl(activity, which = "large") {
     if (!activity?.application_id || !activity?.assets) return null;
     const key = which === "small" ? activity.assets.small_image : activity.assets.large_image;
@@ -103,18 +112,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (key.startsWith("mp:")) return null;
     return `https://cdn.discordapp.com/app-assets/${activity.application_id}/${key}.png`;
   }
+
   // =========================================
   //  LYRICS ENGINE
   // =========================================
-  let syncedLyrics = [];       // [{time: float (seconds), text: string}]
-  let lastLyricsTrackId = null; // avoid refetching the same track
-  let spotifyStartMs = null;    // timestamp.start from Lanyard
-  let lyricsRafId = null;       // requestAnimationFrame handle
-  let lastActiveIdx = -1;       // last highlighted line index
-  /**
-   * Parse an LRC string into [{time, text}] sorted by time.
-   * Supports both [mm:ss.xx] and [mm:ss.xxx] formats.
-   */
+  let syncedLyrics = [];
+  let lastLyricsTrackId = null;
+  let spotifyStartMs = null;
+  let lyricsRafId = null;
+  let lastActiveIdx = -1;
+
   function parseLRC(lrc) {
     if (!lrc) return [];
     const parsed = [];
@@ -129,16 +136,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return parsed.sort((a, b) => a.time - b.time);
   }
-  /**
-   * Fetch synced lyrics from lrclib.net.
-   * Tries an exact /api/get first, then falls back to /api/search
-   * with a cleaned-up song name (strips parenthetical/bracket suffixes).
-   */
+
   async function fetchSyncedLyrics(song, artist) {
     try {
-      // Use first artist only — Lanyard often gives "Artist1; Artist2"
       const primaryArtist = artist.split(/[,;]/)[0].trim();
-      // 1) Exact match via /api/get
       const getParams = new URLSearchParams({
         track_name: song,
         artist_name: primaryArtist
@@ -148,7 +149,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = await res.json();
         if (data.syncedLyrics) return parseLRC(data.syncedLyrics);
       }
-      // 2) Fallback: search with cleaned song name
       const cleanSong = song.replace(/\s*[\(\[].*$/g, "").trim();
       const searchParams = new URLSearchParams({
         q: `${cleanSong} ${primaryArtist}`
@@ -156,7 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
       res = await fetch(`https://lrclib.net/api/search?${searchParams}`);
       if (res.ok) {
         const results = await res.json();
-        // Pick the first result that has synced lyrics
         const match = results.find(r => r.syncedLyrics);
         if (match) return parseLRC(match.syncedLyrics);
       }
@@ -166,12 +165,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return [];
     }
   }
-  /**
-   * Build DOM lines inside the lyrics container.
-   */
+
   function renderLyricsLines(lyrics) {
     lyricsContainer.innerHTML = "";
-    // Top spacer so the first line can scroll to center
     const topSpacer = document.createElement("div");
     topSpacer.className = "lyrics-spacer";
     lyricsContainer.appendChild(topSpacer);
@@ -182,24 +178,19 @@ document.addEventListener("DOMContentLoaded", () => {
       div.dataset.index = i;
       lyricsContainer.appendChild(div);
     }
-    // Bottom spacer so the last line can scroll to center
     const bottomSpacer = document.createElement("div");
     bottomSpacer.className = "lyrics-spacer";
     lyricsContainer.appendChild(bottomSpacer);
   }
-  /**
-   * Animation-frame tick: highlight the current line and scroll it into view.
-   */
+
   function tickLyrics() {
     if (!syncedLyrics.length || spotifyStartMs == null) return;
     const elapsedSec = (Date.now() - spotifyStartMs) / 1000;
-    // Find the latest line whose timestamp ≤ elapsed
     let idx = -1;
     for (let i = 0; i < syncedLyrics.length; i++) {
       if (syncedLyrics[i].time <= elapsedSec) idx = i;
       else break;
     }
-    // Only touch the DOM when the active line actually changes
     if (idx !== lastActiveIdx) {
       lastActiveIdx = idx;
       const lines = lyricsContainer.querySelectorAll(".lyrics-line");
@@ -213,7 +204,6 @@ document.addEventListener("DOMContentLoaded", () => {
           el.style.opacity = dist <= 1 ? "0.55" : dist <= 3 ? "0.3" : "0.15";
         }
       });
-      // Scroll active line to center WITHIN the container only (never moves the page)
       if (idx >= 0 && lines[idx]) {
         const lineTop = lines[idx].offsetTop;
         const lineHeight = lines[idx].offsetHeight;
@@ -224,6 +214,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     lyricsRafId = requestAnimationFrame(tickLyrics);
   }
+
   function startLyricsTicker() {
     stopLyricsTicker();
     lastActiveIdx = -1;
@@ -245,106 +236,241 @@ document.addEventListener("DOMContentLoaded", () => {
     lyricsStatus.textContent = "";
     lyricsSection.hidden = true;
   }
-  // =========================
-  // Main update (REST)
-  // =========================
-  async function update() {
+
+  // =========================================
+  //  APPLY PRESENCE DATA (shared by WS + REST)
+  // =========================================
+  function applyPresence(data) {
+    if (!data) return;
+
+    const user = data.discord_user;
+    nameEl.textContent = user?.global_name || user?.username || "—";
+    avatar.src = discordAvatarUrl(user);
+
+    // Status
+    const st = data.discord_status || "offline";
+    dot.style.background = statusColor[st] || statusColor.offline;
+    statusText.textContent = statusLabel(st);
+
+    // ---- Spotify ----
+    if (data.spotify?.track_id) {
+      spTrack.textContent = data.spotify.song || "—";
+      spArtist.textContent = data.spotify.artist || "—";
+      currentSpotifyUrl = spotifyTrackUrl(data.spotify.track_id);
+      setCopyUi({ enabled: !!currentSpotifyUrl, status: "" });
+      if (data.spotify.album_art_url) {
+        spCover.src = data.spotify.album_art_url;
+        spCover.hidden = false;
+      } else {
+        spCover.hidden = true;
+      }
+      spEqualizer.hidden = false;
+
+      // ---- Lyrics sync ----
+      spotifyStartMs = data.spotify.timestamps?.start ?? null;
+      if (data.spotify.track_id !== lastLyricsTrackId) {
+        lastLyricsTrackId = data.spotify.track_id;
+        lyricsSection.hidden = false;
+        lyricsStatus.textContent = "Loading lyrics…";
+        lyricsContainer.innerHTML = "";
+        stopLyricsTicker();
+        fetchSyncedLyrics(
+          data.spotify.song || "",
+          data.spotify.artist || ""
+        ).then(lyrics => {
+          syncedLyrics = lyrics;
+          if (lyrics.length) {
+            lyricsStatus.textContent = "";
+            renderLyricsLines(lyrics);
+            startLyricsTicker();
+          } else {
+            lyricsStatus.textContent = "No synced lyrics available for this track";
+          }
+        });
+      }
+    } else {
+      spTrack.textContent = "Not listening to anything right now";
+      spArtist.textContent = "—";
+      spCover.hidden = true;
+      currentSpotifyUrl = null;
+      setCopyUi({ enabled: false, status: "Not listening" });
+      spEqualizer.hidden = true;
+      clearLyrics();
+    }
+
+    // Game + Details + Icon
+    const game = pickGame(data.activities || []);
+    if (game) {
+      gameEl.textContent = game.name || "—";
+      detailsEl.textContent = [game.details, game.state].filter(Boolean).join(" • ") || "—";
+      const iconUrl = activityAssetUrl(game, "large") || activityAssetUrl(game, "small");
+      if (iconUrl) {
+        gameIcon.src = iconUrl;
+        gameIcon.hidden = false;
+      } else {
+        gameIcon.hidden = true;
+      }
+    } else {
+      gameEl.textContent = "Not playing any game right now";
+      detailsEl.textContent = "—";
+      gameIcon.hidden = true;
+    }
+  }
+
+  function applyError() {
+    statusText.textContent = "Error";
+    dot.style.background = statusColor.offline;
+    detailsEl.textContent = "Couldn't load presence";
+    spTrack.textContent = "Not listening to anything right now";
+    spArtist.textContent = "—";
+    spCover.hidden = true;
+    spEqualizer.hidden = true;
+    currentSpotifyUrl = null;
+    setCopyUi({ enabled: false, status: "Error" });
+    clearLyrics();
+  }
+
+  // =========================================
+  //  WEBSOCKET (primary — live updates)
+  // =========================================
+  let ws = null;
+  let heartbeatInterval = null;
+  let wsConnected = false;
+  let reconnectTimeout = null;
+  let reconnectDelay = 1000; // start at 1s, increases on failure
+
+  function connectWebSocket() {
+    if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
+      return; // already connected or connecting
+    }
+
+    try {
+      ws = new WebSocket(WS_URL);
+    } catch (e) {
+      console.warn("[Lanyard WS] Failed to create WebSocket, falling back to REST:", e);
+      startRESTFallback();
+      return;
+    }
+
+    ws.onopen = () => {
+      console.log("[Lanyard WS] Connected");
+      reconnectDelay = 1000; // reset backoff on successful connection
+    };
+
+    ws.onmessage = (event) => {
+      let msg;
+      try {
+        msg = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+
+      switch (msg.op) {
+        // op 1: Hello — contains heartbeat_interval
+        case 1:
+          startHeartbeat(msg.d.heartbeat_interval);
+          // Send op 2: Initialize — subscribe to our user
+          ws.send(JSON.stringify({
+            op: 2,
+            d: { subscribe_to_id: USER_ID }
+          }));
+          break;
+
+        // op 0: Event — INIT_STATE or PRESENCE_UPDATE
+        case 0:
+          wsConnected = true;
+          stopRESTFallback(); // WS is live, no need for REST polling
+          if (msg.t === "INIT_STATE" || msg.t === "PRESENCE_UPDATE") {
+            applyPresence(msg.d);
+          }
+          break;
+      }
+    };
+
+    ws.onerror = (e) => {
+      console.warn("[Lanyard WS] Error:", e);
+    };
+
+    ws.onclose = (e) => {
+      console.log(`[Lanyard WS] Closed (code ${e.code}). Reconnecting in ${reconnectDelay}ms...`);
+      wsConnected = false;
+      stopHeartbeat();
+      // Start REST polling while we reconnect
+      startRESTFallback();
+      // Schedule reconnect with exponential backoff (max 30s)
+      reconnectTimeout = setTimeout(() => {
+        reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+        connectWebSocket();
+      }, reconnectDelay);
+    };
+  }
+
+  function startHeartbeat(intervalMs) {
+    stopHeartbeat();
+    heartbeatInterval = setInterval(() => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ op: 3 }));
+      }
+    }, intervalMs);
+  }
+
+  function stopHeartbeat() {
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      heartbeatInterval = null;
+    }
+  }
+
+  // =========================================
+  //  REST FALLBACK (used when WS is down)
+  // =========================================
+  let restPollId = null;
+
+  async function restUpdate() {
     try {
       const res = await fetch(`${API_URL}?_=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
-      const data = json.data;
-      if (!data) throw new Error("No data");
-      const user = data.discord_user;
-      nameEl.textContent = user?.global_name || user?.username || "—";
-      avatar.src = discordAvatarUrl(user);
-      // Status
-      const st = data.discord_status || "offline";
-      dot.style.background = statusColor[st] || statusColor.offline;
-      statusText.textContent = statusLabel(st);
-      // ---- Spotify ----
-      if (data.spotify?.track_id) {
-        spTrack.textContent = data.spotify.song || "—";
-        spArtist.textContent = data.spotify.artist || "—";
-        currentSpotifyUrl = spotifyTrackUrl(data.spotify.track_id);
-        setCopyUi({ enabled: !!currentSpotifyUrl, status: "" });
-        if (data.spotify.album_art_url) {
-          spCover.src = data.spotify.album_art_url;
-          spCover.hidden = false;
-        } else {
-          spCover.hidden = true;
-        }
-        // Show equalizer bars
-        spEqualizer.hidden = false;
-        // ---- Lyrics sync ----
-        spotifyStartMs = data.spotify.timestamps?.start ?? null;
-        if (data.spotify.track_id !== lastLyricsTrackId) {
-          // New track — fetch lyrics
-          lastLyricsTrackId = data.spotify.track_id;
-          lyricsSection.hidden = false;
-          lyricsStatus.textContent = "Loading lyrics…";
-          lyricsContainer.innerHTML = "";
-          stopLyricsTicker();
-          fetchSyncedLyrics(
-            data.spotify.song || "",
-            data.spotify.artist || ""
-          ).then(lyrics => {
-            syncedLyrics = lyrics;
-            if (lyrics.length) {
-              lyricsStatus.textContent = "";
-              renderLyricsLines(lyrics);
-              startLyricsTicker();
-            } else {
-              lyricsStatus.textContent = "No synced lyrics available for this track";
-            }
-          });
-        }
-        // ---- /Lyrics ----
-      } else {
-        spTrack.textContent = "Not listening to anything right now";
-        spArtist.textContent = "—";
-        spCover.hidden = true;
-        currentSpotifyUrl = null;
-        setCopyUi({ enabled: false, status: "Not listening" });
-        // Hide equalizer bars
-        spEqualizer.hidden = true;
-        clearLyrics();
-      }
-      // Game + Details + Icon
-      const game = pickGame(data.activities || []);
-      if (game) {
-        gameEl.textContent = game.name || "—";
-        detailsEl.textContent = [game.details, game.state].filter(Boolean).join(" • ") || "—";
-        const iconUrl = activityAssetUrl(game, "large") || activityAssetUrl(game, "small");
-        if (iconUrl) {
-          gameIcon.src = iconUrl;
-          gameIcon.hidden = false;
-        } else {
-          gameIcon.hidden = true;
-        }
-      } else {
-        gameEl.textContent = "Not playing any game right now";
-        detailsEl.textContent = "—";
-        gameIcon.hidden = true;
-      }
+      if (!json.data) throw new Error("No data");
+      applyPresence(json.data);
     } catch (e) {
-      console.error("[Lanyard widget] update failed:", e);
-      statusText.textContent = "Error";
-      dot.style.background = statusColor.offline;
-      detailsEl.textContent = "Couldn't load presence";
-      spTrack.textContent = "Not listening to anything right now";
-      spArtist.textContent = "—";
-      spCover.hidden = true;
-      spEqualizer.hidden = true;
-      currentSpotifyUrl = null;
-      setCopyUi({ enabled: false, status: "Error" });
-      clearLyrics();
+      console.error("[Lanyard REST] update failed:", e);
+      applyError();
     }
   }
-  update();
-  setInterval(update, 1000);
+
+  function startRESTFallback() {
+    if (restPollId) return; // already running
+    console.log("[Lanyard] Starting REST fallback polling");
+    restUpdate(); // immediate first fetch
+    restPollId = setInterval(restUpdate, 5000);
+  }
+
+  function stopRESTFallback() {
+    if (restPollId) {
+      console.log("[Lanyard] Stopping REST fallback (WebSocket is live)");
+      clearInterval(restPollId);
+      restPollId = null;
+    }
+  }
+
+  // =========================================
+  //  INIT — try WebSocket first, REST as backup
+  // =========================================
+  // Do one immediate REST fetch so the card isn't empty while WS connects
+  restUpdate();
+  connectWebSocket();
+
+  // If tab becomes visible again, ensure connection is alive
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) update();
+    if (!document.hidden) {
+      if (!wsConnected) {
+        restUpdate();
+        // Clear any pending reconnect and try immediately
+        if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        reconnectDelay = 1000;
+        connectWebSocket();
+      }
+    }
   });
-    window.addEventListener("focus", () => update());
 });
