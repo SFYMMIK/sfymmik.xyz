@@ -587,6 +587,7 @@ code {
 .friends-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  justify-items: start;
   gap: 6px 20px;
   margin: 8px 0;
 }
