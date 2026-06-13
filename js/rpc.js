@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let spotifyStartMs = null;
   let lyricsRafId = null;
   let lastActiveIdx = -1;
+  const lyricsCache = new Map();
 
   function parseLRC(lrc) {
     if (!lrc) return [];
@@ -138,27 +139,43 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function fetchSyncedLyrics(song, artist) {
+    const cacheKey = `${song}||${artist}`;
+    if (lyricsCache.has(cacheKey)) return lyricsCache.get(cacheKey);
     try {
       const primaryArtist = artist.split(/[,;]/)[0].trim();
-      const getParams = new URLSearchParams({
+      const exactParams = new URLSearchParams({
         track_name: song,
         artist_name: primaryArtist
       });
-      let res = await fetch(`https://lrclib.net/api/get?${getParams}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.syncedLyrics) return parseLRC(data.syncedLyrics);
-      }
       const cleanSong = song.replace(/\s*[\(\[].*$/g, "").trim();
       const searchParams = new URLSearchParams({
         q: `${cleanSong} ${primaryArtist}`
       });
-      res = await fetch(`https://lrclib.net/api/search?${searchParams}`);
-      if (res.ok) {
-        const results = await res.json();
-        const match = results.find(r => r.syncedLyrics);
-        if (match) return parseLRC(match.syncedLyrics);
+      // Fire both requests in parallel
+      const [exactRes, searchRes] = await Promise.all([
+        fetch(`https://lrclib.net/api/get?${exactParams}`).catch(() => null),
+        fetch(`https://lrclib.net/api/search?${searchParams}`).catch(() => null)
+      ]);
+      // Prefer exact match
+      if (exactRes?.ok) {
+        const data = await exactRes.json();
+        if (data.syncedLyrics) {
+          const parsed = parseLRC(data.syncedLyrics);
+          lyricsCache.set(cacheKey, parsed);
+          return parsed;
+        }
       }
+      // Fall back to search
+      if (searchRes?.ok) {
+        const results = await searchRes.json();
+        const match = results.find(r => r.syncedLyrics);
+        if (match) {
+          const parsed = parseLRC(match.syncedLyrics);
+          lyricsCache.set(cacheKey, parsed);
+          return parsed;
+        }
+      }
+      lyricsCache.set(cacheKey, []);
       return [];
     } catch (e) {
       console.error("[Lyrics] fetch error:", e);
