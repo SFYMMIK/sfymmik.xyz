@@ -617,6 +617,9 @@ code {
   transform: translateY(-3px) scale(1.05);
   filter: brightness(1.15);
 }
+.badges a::after {
+  display: none;
+}
 
 /* ═══════════════════════════════════════════════════════════
  *  FOOTER
