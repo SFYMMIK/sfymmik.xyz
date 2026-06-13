@@ -143,6 +143,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return parsed.sort((a, b) => a.time - b.time);
   }
 
+  function safeFetch(url) {
+    return fetch(url).catch(() => null);
+  }
+
   async function fetchSyncedLyrics(song, artist) {
     const cacheKey = `${song}||${artist}`;
     if (lyricsCache.has(cacheKey)) return lyricsCache.get(cacheKey);
@@ -156,32 +160,39 @@ document.addEventListener("DOMContentLoaded", () => {
       const searchParams = new URLSearchParams({
         q: `${cleanSong} ${primaryArtist}`
       });
-      // Fire both requests in parallel
-      const [exactRes, searchRes] = await Promise.all([
-        fetch(`https://lrclib.net/api/get?${exactParams}`).catch(() => null),
-        fetch(`https://lrclib.net/api/search?${searchParams}`).catch(() => null)
-      ]);
-      // Prefer exact match
-      if (exactRes?.ok) {
-        const data = await exactRes.json();
-        if (data.syncedLyrics) {
-          const parsed = parseLRC(data.syncedLyrics);
-          lyricsCache.set(cacheKey, parsed);
-          return parsed;
+
+      // Race: resolve as soon as either request returns valid lyrics
+      const result = await new Promise(resolve => {
+        let done = false;
+        let pending = 2;
+        function tryResolve(parsed) {
+          if (done) return;
+          if (parsed && parsed.length) { done = true; resolve(parsed); }
+          else if (--pending <= 0) resolve([]);
         }
-      }
-      // Fall back to search
-      if (searchRes?.ok) {
-        const results = await searchRes.json();
-        const match = results.find(r => r.syncedLyrics);
-        if (match) {
-          const parsed = parseLRC(match.syncedLyrics);
-          lyricsCache.set(cacheKey, parsed);
-          return parsed;
-        }
-      }
-      lyricsCache.set(cacheKey, []);
-      return [];
+
+        safeFetch(`https://lrclib.net/api/get?${exactParams}`)
+          .then(async res => {
+            if (res?.ok) {
+              const data = await res.json();
+              if (data.syncedLyrics) return tryResolve(parseLRC(data.syncedLyrics));
+            }
+            tryResolve(null);
+          }).catch(() => tryResolve(null));
+
+        safeFetch(`https://lrclib.net/api/search?${searchParams}`)
+          .then(async res => {
+            if (res?.ok) {
+              const results = await res.json();
+              const match = results.find(r => r.syncedLyrics);
+              if (match) return tryResolve(parseLRC(match.syncedLyrics));
+            }
+            tryResolve(null);
+          }).catch(() => tryResolve(null));
+      });
+
+      lyricsCache.set(cacheKey, result);
+      return result;
     } catch (e) {
       console.error("[Lyrics] fetch error:", e);
       return [];
