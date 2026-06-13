@@ -91,7 +91,7 @@ window.addEventListener("load", () => {
           <span class="rpc-status-text" id="rpcStatusText">Connecting…</span>
         </div>
       </div>
-      <div class="rpc-block">
+      <div class="rpc-block" id="rpcGameBlock">
         <div class="rpc-label">Playing</div>
         <div class="rpc-line">
           <img class="rpc-icon" id="gameIcon" alt="" hidden>
@@ -101,8 +101,8 @@ window.addEventListener("load", () => {
           </div>
         </div>
       </div>
-      <div class="rpc-sep"></div>
-      <div class="rpc-block spotify">
+      <div class="rpc-sep" id="rpcSep"></div>
+      <div class="rpc-block spotify" id="rpcSpotifyBlock">
         <div class="rpc-label">(Spotify) Listening to, in this moment..</div>
         <div class="rpc-line">
           <img class="rpc-cover" id="spCover" alt="" hidden>
@@ -121,15 +121,11 @@ window.addEventListener("load", () => {
               <span class="sp-copy-status" id="copySpotifyStatus"></span>
             </div>
           </div>
-        </div>
-      </div>
-      <!-- ===== Synced Lyrics ===== -->
-      <div id="lyricsSection" hidden>
-        <div class="rpc-sep"></div>
-        <div class="rpc-block">
-          <div class="rpc-label">Lyrics</div>
-          <p id="lyricsStatus"></p>
-          <div id="lyricsContainer"></div>
+          <!-- Inline lyric display -->
+          <div id="lyricsSection" class="lyrics-inline" hidden>
+            <p id="lyricsStatus"></p>
+            <div id="lyricsContainer"></div>
+          </div>
         </div>
       </div>
     </div>

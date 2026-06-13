@@ -17,6 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const copySpotifyBtn = document.getElementById("copySpotifyBtn");
   const copySpotifyStatus = document.getElementById("copySpotifyStatus");
   const spEqualizer = document.getElementById("spEqualizer");
+  // ---- RPC blocks (toggled by status)
+  const rpcGameBlock = document.getElementById("rpcGameBlock");
+  const rpcSep = document.getElementById("rpcSep");
+  const rpcSpotifyBlock = document.getElementById("rpcSpotifyBlock");
   // ---- Lyrics Elements
   const lyricsSection = document.getElementById("lyricsSection");
   const lyricsContainer = document.getElementById("lyricsContainer");
@@ -29,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
     spCover, spTrack, spArtist,
     copySpotifyBtn, copySpotifyStatus,
     spEqualizer,
+    rpcGameBlock, rpcSep, rpcSpotifyBlock,
     lyricsSection, lyricsContainer, lyricsStatus
   };
   for (const [k, v] of Object.entries(required)) {
@@ -183,21 +188,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  function renderLyricsLines(lyrics) {
+  function renderLyricsLines() {
+    // No pre-rendering needed — tickLyrics handles the single line display
     lyricsContainer.innerHTML = "";
-    const topSpacer = document.createElement("div");
-    topSpacer.className = "lyrics-spacer";
-    lyricsContainer.appendChild(topSpacer);
-    for (let i = 0; i < lyrics.length; i++) {
-      const div = document.createElement("div");
-      div.className = "lyrics-line";
-      div.textContent = lyrics[i].text;
-      div.dataset.index = i;
-      lyricsContainer.appendChild(div);
-    }
-    const bottomSpacer = document.createElement("div");
-    bottomSpacer.className = "lyrics-spacer";
-    lyricsContainer.appendChild(bottomSpacer);
   }
 
   function tickLyrics() {
@@ -210,23 +203,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (idx !== lastActiveIdx) {
       lastActiveIdx = idx;
-      const lines = lyricsContainer.querySelectorAll(".lyrics-line");
-      lines.forEach((el, i) => {
-        const dist = idx < 0 ? lines.length : Math.abs(i - idx);
-        // Only show prev, current, and next line
-        if (dist <= 1 && idx >= 0) {
-          el.classList.add("lyrics-visible");
-        } else {
-          el.classList.remove("lyrics-visible");
-        }
-        if (i === idx) {
-          el.classList.add("active");
-          el.style.opacity = "1";
-        } else {
-          el.classList.remove("active");
-          el.style.opacity = dist <= 1 ? "0.45" : "0";
-        }
-      });
+      lyricsContainer.innerHTML = "";
+      if (idx >= 0) {
+        const span = document.createElement("span");
+        span.className = "lyric-current";
+        span.textContent = syncedLyrics[idx].text;
+        lyricsContainer.appendChild(span);
+      }
     }
     lyricsRafId = requestAnimationFrame(tickLyrics);
   }
@@ -268,8 +251,17 @@ document.addEventListener("DOMContentLoaded", () => {
     dot.style.background = statusColor[st] || statusColor.offline;
     statusText.textContent = statusLabel(st);
 
+    // Hide game/spotify blocks when idle or offline
+    const showBlocks = (st === "online" || st === "dnd");
+    rpcGameBlock.hidden = !showBlocks;
+    rpcSep.hidden = !showBlocks;
+    rpcSpotifyBlock.hidden = !showBlocks;
+    if (!showBlocks) {
+      clearLyrics();
+    }
+
     // ---- Spotify ----
-    if (data.spotify?.track_id) {
+    if (showBlocks && data.spotify?.track_id) {
       spTrack.textContent = data.spotify.song || "—";
       spArtist.textContent = data.spotify.artist || "—";
       currentSpotifyUrl = spotifyTrackUrl(data.spotify.track_id);
@@ -290,10 +282,13 @@ document.addEventListener("DOMContentLoaded", () => {
         lyricsStatus.textContent = "Loading lyrics…";
         lyricsContainer.innerHTML = "";
         stopLyricsTicker();
+        const fetchTrackId = data.spotify.track_id;
         fetchSyncedLyrics(
           data.spotify.song || "",
           data.spotify.artist || ""
         ).then(lyrics => {
+          // Discard if song changed while we were fetching
+          if (fetchTrackId !== lastLyricsTrackId) return;
           syncedLyrics = lyrics;
           if (lyrics.length) {
             lyricsStatus.textContent = "";

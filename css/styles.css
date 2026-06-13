@@ -531,48 +531,57 @@ code {
 }
 
 /* ═══════════════════════════════════════════════════════════
- *  SYNCED LYRICS (kept)
+ *  INLINE LYRICS — single line, split-flap counter effect
  *  ═══════════════════════════════════════════════════════════ */
-#lyricsSection {
-  margin-top: 0;
+.lyrics-inline {
+  margin-left: auto;
+  flex: 0 0 auto;
+  max-width: 180px;
+  text-align: right;
+  align-self: center;
 }
 
 #lyricsContainer {
   position: relative;
   overflow: hidden;
-  padding: 0;
+  min-height: 3.9em;
+  perspective: 200px;
 }
 
-.lyrics-spacer {
-  display: none;
-}
-
-.lyrics-line {
-  padding: 3px 0;
-  font-family: inherit;
-  font-size: 0.85em;
-  line-height: 1.4;
-  color: #ddd;
-  opacity: 0;
-  text-align: center;
-  transition: opacity 0.3s ease, font-size 0.3s ease;
-  display: none;
-}
-.lyrics-line.lyrics-visible {
+.lyric-current {
   display: block;
+  font-size: 0.78em;
+  line-height: 1.3;
+  color: #aaa;
+  word-break: break-word;
+  text-align: right;
+  animation: lyric-flip 0.35s ease-out;
 }
 
-.lyrics-line.active {
-  opacity: 1 !important;
-  font-size: 0.95em;
-  font-weight: bold;
+@keyframes lyric-flip {
+  0% {
+    transform: translateY(-100%) rotateX(60deg);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.5;
+  }
+  75% {
+    transform: translateY(4%) rotateX(-2deg);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(0) rotateX(0);
+    opacity: 1;
+  }
 }
 
 #lyricsStatus {
-  text-align: center;
-  font-size: 0.8em;
-  color: #666;
-  padding: 8px 0;
+  font-size: 0.7em;
+  color: #555;
+  margin: 0;
+  text-align: right;
+  white-space: nowrap;
 }
 #lyricsStatus:empty {
   display: none;
