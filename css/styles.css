@@ -596,8 +596,8 @@ code {
  *  BADGES (88×31 buttons)
  *  ═══════════════════════════════════════════════════════════ */
 .badges {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, 88px);
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 0;
   max-width: 440px; /* 5 columns * 88px */
