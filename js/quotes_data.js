@@ -4683,6 +4683,6 @@ const ALL_QUOTES =
   },
   {
     "text": "Today's closed-source software cares only about money, OSS is the way.",
-    "author": "SfymmiK"
+    "author": "Szymon Grajner (SfymmiK)"
   }
 ];
