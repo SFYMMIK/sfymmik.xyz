@@ -4676,5 +4676,13 @@ const ALL_QUOTES =
     "author": "Gottfried Wilhelm Leibniz",
     "numberOfVotes": 1,
     "rating": 4.5
+  },
+  {
+    "text": "I feel like a 'GAY HACKERMAN' doing my website.",
+    "author": "ELKibelos"
+  },
+  {
+    "text": "Today's closed-source software cares only about money, OSS is the way.",
+    "author": "SfymmiK"
   }
 ];
