@@ -538,32 +538,28 @@ code {
 }
 
 #lyricsContainer {
-  max-height: 200px;
-  overflow-y: auto;
   position: relative;
+  overflow: hidden;
   padding: 0;
-  mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%);
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-#lyricsContainer::-webkit-scrollbar {
-  display: none;
 }
 
 .lyrics-spacer {
-  height: 80px;
+  display: none;
 }
 
 .lyrics-line {
-  padding: 4px 0;
+  padding: 3px 0;
   font-family: inherit;
   font-size: 0.85em;
-  line-height: 1.45;
+  line-height: 1.4;
   color: #ddd;
-  opacity: 0.15;
+  opacity: 0;
   text-align: center;
   transition: opacity 0.3s ease, font-size 0.3s ease;
+  display: none;
+}
+.lyrics-line.lyrics-visible {
+  display: block;
 }
 
 .lyrics-line.active {

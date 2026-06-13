@@ -196,21 +196,20 @@ document.addEventListener("DOMContentLoaded", () => {
       const lines = lyricsContainer.querySelectorAll(".lyrics-line");
       lines.forEach((el, i) => {
         const dist = idx < 0 ? lines.length : Math.abs(i - idx);
+        // Only show prev, current, and next line
+        if (dist <= 1 && idx >= 0) {
+          el.classList.add("lyrics-visible");
+        } else {
+          el.classList.remove("lyrics-visible");
+        }
         if (i === idx) {
           el.classList.add("active");
           el.style.opacity = "1";
         } else {
           el.classList.remove("active");
-          el.style.opacity = dist <= 1 ? "0.55" : dist <= 3 ? "0.3" : "0.15";
+          el.style.opacity = dist <= 1 ? "0.45" : "0";
         }
       });
-      if (idx >= 0 && lines[idx]) {
-        const lineTop = lines[idx].offsetTop;
-        const lineHeight = lines[idx].offsetHeight;
-        const containerHeight = lyricsContainer.clientHeight;
-        const scrollTarget = lineTop - (containerHeight / 2) + (lineHeight / 2);
-        lyricsContainer.scrollTo({ top: scrollTarget, behavior: "smooth" });
-      }
     }
     lyricsRafId = requestAnimationFrame(tickLyrics);
   }
