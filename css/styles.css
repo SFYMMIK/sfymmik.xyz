@@ -711,3 +711,152 @@ footer p {
     display: none !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+ *  CS2 HOVER CARD
+ *  ═══════════════════════════════════════════════════════════ */
+.cs2-list-item {
+  position: relative;
+}
+
+.cs2-trigger {
+  color: #6cacec;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+  transition: text-shadow 0.2s ease, color 0.2s ease;
+  position: relative;
+}
+
+.cs2-trigger:hover, .cs2-trigger:focus {
+  text-shadow: 0 0 8px rgba(108, 172, 236, 0.4);
+}
+
+.cs2-trigger::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0px;
+  width: 0%;
+  height: 1px;
+  background-color: #6cacec;
+  transition: width 0.3s ease;
+}
+
+.cs2-trigger:hover::after, .cs2-trigger:focus::after {
+  width: 100%;
+}
+
+.cs2-card {
+  width: 260px;
+  background: rgba(30, 30, 35, 0.6);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  
+  margin-top: 8px;
+  opacity: 0;
+  max-height: 0;
+  overflow: hidden;
+  padding: 0 16px;
+  border: 0px solid rgba(255, 255, 255, 0.08);
+  visibility: hidden;
+  transform: translateY(-5px);
+  transform-origin: top center;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+}
+
+.cs2-list-item:hover .cs2-card,
+.cs2-trigger:focus + .cs2-card {
+  opacity: 1;
+  max-height: 300px;
+  padding: 16px;
+  border-width: 1px;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.cs2-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 12px;
+}
+
+.cs2-pfp {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cs2-card-title {
+  font-size: 1.15em;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.cs2-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cs2-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.cs2-stat-label {
+  font-size: 0.85em;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cs2-premier-rating {
+  font-family: monospace;
+  font-size: 1.2em;
+  font-weight: 700;
+  text-shadow: 0 0 8px currentColor;
+}
+
+/* Premier Colors */
+.cs2-color-grey { color: #b0c3d9; }
+.cs2-color-lightblue { color: #5e98d9; }
+.cs2-color-blue { color: #4b69ff; }
+.cs2-color-purple { color: #8847ff; }
+.cs2-color-fuchsia { color: #d32ce6; }
+.cs2-color-red { color: #eb4b4b; }
+.cs2-color-gold { color: #e4ae39; }
+
+.cs2-wingman-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cs2-wingman-img {
+  height: 24px;
+  width: auto;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.cs2-wingman-name {
+  font-size: 0.95em;
+  font-weight: 500;
+  color: #e0e0e0;
+}

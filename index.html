@@ -23,7 +23,7 @@
     script-src 'self' 'unsafe-inline';
     style-src 'self' 'unsafe-inline';
     img-src 'self' https: data:;
-    connect-src 'self' https://api.lanyard.rest wss://api.lanyard.rest https://lrclib.net;
+    connect-src 'self' https://api.lanyard.rest wss://api.lanyard.rest https://lrclib.net https://api-public.cs-prod.leetify.com;
   ">
   <script>
 window.addEventListener("load", () => {
@@ -34,6 +34,7 @@ window.addEventListener("load", () => {
   <script src="js/animations.js" defer></script>
   <script src="js/quotes_data.js" defer></script>
   <script src="js/quote.js" defer></script>
+  <script src="js/cs2.js" defer></script>
   <script src="js/BMPR/bmpr.js"></script> <!-- BMP renderer made by me :) -->
 </head>
 <body>
@@ -133,12 +134,33 @@ window.addEventListener("load", () => {
     <!-- ═══ GAMES ═══ -->
     <h2>games</h2>
     <p>I also play some games besides coding:</p>
-    <ol>
-      <li><a href="https://csstats.gg/player/76561199104390936" target="_blank">Counter-Strike 2</a></li>
+    <ul style="list-style: none; padding-left: 0;">
+      <li class="cs2-list-item">
+        <a href="https://store.steampowered.com/app/730/CounterStrike_2/" class="cs2-trigger" target="_blank">Counter-Strike 2</a>
+        <div class="cs2-card">
+          <div class="cs2-card-header">
+            <img src="images/pfp.png" alt="Profile Picture" class="cs2-pfp" id="cs2-pfp">
+            <span class="cs2-card-title">SfymmiK</span>
+          </div>
+          <div class="cs2-card-body">
+            <div class="cs2-stat">
+              <span class="cs2-stat-label">Premier</span>
+              <span class="cs2-premier-rating" id="cs2-premier">Loading...</span>
+            </div>
+            <div class="cs2-stat">
+              <span class="cs2-stat-label">Wingman</span>
+              <div class="cs2-wingman-wrap">
+                <img src="" alt="Wingman Rank" class="cs2-wingman-img" id="cs2-wingman-img" hidden>
+                <span class="cs2-wingman-name" id="cs2-wingman-name">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
       <li><a href="https://www.minecraft.net/" target="_blank">Minecraft</a></li>
       <li><a href="https://store.steampowered.com/app/3164500/Schedule_I/" target="_blank">Schedule 1</a></li>
       <li><a href="https://osu.ppy.sh/" target="_blank">Osu (Lazer)</a></li>
-    </ol>
+    </ul>
 
     <!-- ═══ PROJECTS ═══ -->
     <h2>projects</h2>
