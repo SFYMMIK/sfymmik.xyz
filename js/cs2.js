@@ -47,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await response.json();
     
     // 1. Profile Picture (Optional: Leetify doesn't provide pfp in /v3/profile, so use local or a steam static one)
-    pfpEl.src = "images/pfp.png";
+    pfpEl.src = "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/37/37af55ed6db031051b7df0a7fd4aef77ef9ecc55_full.jpg";
 
     // 2. Premier Rating
     const premierRating = data.ranks?.premier || 0;
