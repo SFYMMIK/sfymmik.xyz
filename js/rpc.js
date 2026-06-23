@@ -1,3 +1,5 @@
+"use strict";
+
 document.addEventListener("DOMContentLoaded", () => {
   const USER_ID = "764834366161420299";
   const WS_URL = "wss://api.lanyard.rest/socket";

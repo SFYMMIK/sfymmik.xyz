@@ -1,3 +1,5 @@
+"use strict";
+
 const STEAM_64_ID = "76561199104390936"; // JustSfymmiK's Steam ID
 const LEETIFY_API_URL = `https://api-public.cs-prod.leetify.com/v3/profile?id=${STEAM_64_ID}`;
 
@@ -35,7 +37,7 @@ function getPremierColor(rating) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const pfpEl = document.getElementById("cs2-pfp");
+  const pfpEl = document.getElementById("game-pfp");
   const premierEl = document.getElementById("cs2-premier");
   const wingmanNameEl = document.getElementById("cs2-wingman-name");
   const wingmanImgEl = document.getElementById("cs2-wingman-img");
@@ -46,8 +48,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     const data = await response.json();
     
-    // 1. Profile Picture (Optional: Leetify doesn't provide pfp in /v3/profile, so use local or a steam static one)
-    pfpEl.src = "https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/37/37af55ed6db031051b7df0a7fd4aef77ef9ecc55_full.jpg";
+    // 1. Profile Picture
+    pfpEl.src = "https://id.i-prod.leetify.com/images/v1/avatar/b10a3451-c496-4a8a-8264-5966d6153a9e";
 
     // 2. Premier Rating
     const premierRating = data.ranks?.premier || 0;

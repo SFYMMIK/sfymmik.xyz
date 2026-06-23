@@ -1,81 +1,101 @@
 (function () {
   "use strict";
 
-  /* ═══════════════════════ CONFIG ═══════════════════════ */
+  // Constellation Config
   const CFG = {
-    noise: {
-      grainSize: 2,
-      opacity: 0.06,
-      tint: [30, 184, 231],    // cyan tint for dark mode
-      tintStrength: 0.15,
-      fps: 12,
-      mobileFps: 8,
-    },
+    color: "rgba(30, 184, 231, 0.6)", // Cyan matching the theme
+    lineColor: "rgba(30, 184, 231, 0.15)",
+    particleCount: 80,
+    maxDistance: 120, // Max distance to draw a line between nodes
+    speed: 0.5,
+    radius: 1.5,
+    fps: 30
   };
 
-  /* ═══════════════════════ UTILS ═══════════════════════ */
-  const reducedMotion =
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  /* ═══════════════════════ CRT NOISE / STATIC ═══════════════════════ */
-  class CRTNoise {
+  class Constellation {
     constructor(canvas) {
       this.cvs = canvas;
       this.ctx = canvas.getContext("2d");
-      this.mobile = window.innerWidth < 768 || "ontouchstart" in window;
-      this.scale = this.mobile ? 0.25 : 0.5;
-      this.interval = 1000 / (this.mobile ? CFG.noise.mobileFps : CFG.noise.fps);
-      this.lastFrame = 0;
+      this.particles = [];
+      
       this._resize();
-      this._buildGrainTile();
+      this._initParticles();
       this._bind();
+      
+      this.interval = 1000 / CFG.fps;
+      this.lastFrame = 0;
       this._loop(0);
     }
 
     _resize() {
       this.w = window.innerWidth;
       this.h = window.innerHeight;
-      this.cw = Math.round(this.w * this.scale);
-      this.ch = Math.round(this.h * this.scale);
-      this.cvs.width = this.cw;
-      this.cvs.height = this.ch;
-      this.cvs.style.width = this.w + "px";
-      this.cvs.style.height = this.h + "px";
+      this.cvs.width = this.w;
+      this.cvs.height = this.h;
     }
 
-    _buildGrainTile() {
-      const size = 128;
-      this.tile = document.createElement("canvas");
-      this.tile.width = size;
-      this.tile.height = size;
-      this.tileCtx = this.tile.getContext("2d");
-      this.tileSize = size;
-    }
-
-    _refreshTile() {
-      const ctx = this.tileCtx;
-      const size = this.tileSize;
-      const img = ctx.createImageData(size, size);
-      const d = img.data;
-      const tint = CFG.noise.tint;
-      const ts = CFG.noise.tintStrength;
-
-      for (let i = 0; i < d.length; i += 4) {
-        const v = Math.random() * 255;
-        d[i]     = Math.round(v * (1 - ts) + tint[0] * ts);
-        d[i + 1] = Math.round(v * (1 - ts) + tint[1] * ts);
-        d[i + 2] = Math.round(v * (1 - ts) + tint[2] * ts);
-        d[i + 3] = Math.round(Math.random() * 255 * CFG.noise.opacity);
+    _initParticles() {
+      this.particles = [];
+      const pCount = Math.min(CFG.particleCount, Math.floor((this.w * this.h) / 10000));
+      for (let i = 0; i < pCount; i++) {
+        this.particles.push({
+          x: Math.random() * this.w,
+          y: Math.random() * this.h,
+          vx: (Math.random() - 0.5) * CFG.speed,
+          vy: (Math.random() - 0.5) * CFG.speed
+        });
       }
-      ctx.putImageData(img, 0, 0);
     }
 
     _bind() {
       let resizeTimer;
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => this._resize(), 200);
+        resizeTimer = setTimeout(() => {
+          this._resize();
+          this._initParticles();
+        }, 200);
       });
+    }
+
+    _draw() {
+      this.ctx.clearRect(0, 0, this.w, this.h);
+
+      // Move particles
+      for (let i = 0; i < this.particles.length; i++) {
+        const p = this.particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Bounce off walls
+        if (p.x < 0 || p.x > this.w) p.vx *= -1;
+        if (p.y < 0 || p.y > this.h) p.vy *= -1;
+
+        // Draw particle
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, CFG.radius, 0, Math.PI * 2);
+        this.ctx.fillStyle = CFG.color;
+        this.ctx.fill();
+
+        // Connect nearby particles
+        for (let j = i + 1; j < this.particles.length; j++) {
+          const p2 = this.particles[j];
+          const dx = p.x - p2.x;
+          const dy = p.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < CFG.maxDistance) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(p.x, p.y);
+            this.ctx.lineTo(p2.x, p2.y);
+            // Fade line based on distance
+            const opacity = 1 - (dist / CFG.maxDistance);
+            this.ctx.strokeStyle = `rgba(30, 184, 231, ${opacity * 0.3})`;
+            this.ctx.lineWidth = 1;
+            this.ctx.stroke();
+          }
+        }
+      }
     }
 
     _loop(timestamp) {
@@ -85,32 +105,19 @@
       if (delta < this.interval) return;
       this.lastFrame = timestamp - (delta % this.interval);
 
-      this._refreshTile();
-
-      const ctx = this.ctx;
-      const ox = Math.floor(Math.random() * this.tileSize);
-      const oy = Math.floor(Math.random() * this.tileSize);
-
-      ctx.clearRect(0, 0, this.cw, this.ch);
-
-      const pattern = ctx.createPattern(this.tile, "repeat");
-      ctx.save();
-      ctx.translate(ox, oy);
-      ctx.fillStyle = pattern;
-      ctx.fillRect(-this.tileSize, -this.tileSize, this.cw + this.tileSize, this.ch + this.tileSize);
-      ctx.restore();
+      this._draw();
     }
   }
 
-  /* ═══════════════════════ INIT ═══════════════════════ */
   function boot() {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion) return;
 
     try {
       const cvs = document.getElementById("particles");
-      if (cvs) new CRTNoise(cvs);
+      if (cvs) new Constellation(cvs);
     } catch (e) {
-      console.warn("[animations] CRT noise failed:", e);
+      console.warn("[animations] Constellation failed:", e);
     }
   }
 

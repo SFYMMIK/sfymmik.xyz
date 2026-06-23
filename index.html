@@ -20,21 +20,23 @@
   <meta http-equiv="Content-Security-Policy"
   content="
     default-src 'self';
-    script-src 'self' 'unsafe-inline';
+    script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
     style-src 'self' 'unsafe-inline';
     img-src 'self' https: data:;
-    connect-src 'self' https://api.lanyard.rest wss://api.lanyard.rest https://lrclib.net https://api-public.cs-prod.leetify.com;
+    connect-src 'self' https://api.lanyard.rest wss://api.lanyard.rest https://lrclib.net https://api-public.cs-prod.leetify.com https://api.minetools.eu;
   ">
   <script>
 window.addEventListener("load", () => {
   document.body.classList.add("loaded");
 });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/skinview3d@3.0.0-alpha.1/bundles/skinview3d.bundle.min.js"></script>
   <script src="js/rpc.js" defer></script>
   <script src="js/animations.js" defer></script>
   <script src="js/quotes_data.js" defer></script>
   <script src="js/quote.js" defer></script>
   <script src="js/cs2.js" defer></script>
+  <script src="js/mc.js" defer></script>
   <script src="js/BMPR/bmpr.js"></script> <!-- BMP renderer made by me :) -->
 </head>
 <body>
@@ -135,20 +137,20 @@ window.addEventListener("load", () => {
     <h2>games</h2>
     <p>I also play some games besides coding:</p>
     <ul style="list-style: none; padding-left: 0;">
-      <li class="cs2-list-item">
-        <a href="https://store.steampowered.com/app/730/CounterStrike_2/" class="cs2-trigger" target="_blank">Counter-Strike 2</a>
-        <div class="cs2-card">
-          <div class="cs2-card-header">
-            <img src="images/pfp.png" alt="Profile Picture" class="cs2-pfp" id="cs2-pfp">
-            <span class="cs2-card-title">SfymmiK</span>
+      <li class="game-list-item">
+        <a href="https://csstats.gg/player/76561199104390936" class="game-trigger" target="_blank">Counter-Strike 2</a>
+        <div class="game-card">
+          <div class="game-card-header">
+            <img src="" alt="Profile Picture" class="game-pfp" id="game-pfp">
+            <span class="game-card-title">SfymmiK</span>
           </div>
-          <div class="cs2-card-body">
-            <div class="cs2-stat">
-              <span class="cs2-stat-label">Premier</span>
+          <div class="game-card-body">
+            <div class="game-stat">
+              <span class="game-stat-label">Premier</span>
               <span class="cs2-premier-rating" id="cs2-premier">Loading...</span>
             </div>
-            <div class="cs2-stat">
-              <span class="cs2-stat-label">Wingman</span>
+            <div class="game-stat">
+              <span class="game-stat-label">Wingman</span>
               <div class="cs2-wingman-wrap">
                 <img src="" alt="Wingman Rank" class="cs2-wingman-img" id="cs2-wingman-img" hidden>
                 <span class="cs2-wingman-name" id="cs2-wingman-name">Loading...</span>
@@ -157,9 +159,25 @@ window.addEventListener("load", () => {
           </div>
         </div>
       </li>
-      <li><a href="https://www.minecraft.net/" target="_blank">Minecraft</a></li>
-      <li><a href="https://store.steampowered.com/app/3164500/Schedule_I/" target="_blank">Schedule 1</a></li>
-      <li><a href="https://osu.ppy.sh/" target="_blank">Osu (Lazer)</a></li>
+      <li class="game-list-item">
+        <a href="https://namemc.com/profile/a7ef9121-81ed-4291-b4d6-cfc1105bcb5a" class="game-trigger" target="_blank">Minecraft</a>
+        <div class="game-card">
+          <div class="game-card-header">
+            <span class="game-card-title" id="mc-nickname">Loading...</span>
+          </div>
+          <div class="game-card-body">
+            <div id="mc-3d-viewer" style="width: 100%; height: 300px; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.3);"></div>
+          </div>
+        </div>
+      </li>
+      <li class="game-list-item">
+        <a href="https://osu.ppy.sh/users/34538411" class="game-trigger" target="_blank">Osu! (Lazer)</a>
+        <div class="game-card" style="width: 350px;">
+          <div class="game-card-body" style="padding: 0;">
+            <img src="https://lemmmy.pw/osusig/sig.php?colour=hexff66aa&uname=SFYM&pp=1&countryrank=1&flagshadow=1&flagstroke=1&darktriangles=1&onlineindicator=undefined&xpbar=1&xpbarhex" alt="Osu Signature" style="width: 100%; border-radius: 8px; display: block;">
+          </div>
+        </div>
+      </li>
     </ul>
 
     <!-- ═══ PROJECTS ═══ -->
