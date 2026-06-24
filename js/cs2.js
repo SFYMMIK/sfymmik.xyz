@@ -38,15 +38,21 @@ function getPremierColor(rating) {
 
 document.addEventListener("DOMContentLoaded", async () => {
   const pfpEl = document.getElementById("game-pfp");
+  const nicknameEl = document.getElementById("cs2-nickname");
   const premierEl = document.getElementById("cs2-premier");
   const wingmanNameEl = document.getElementById("cs2-wingman-name");
   const wingmanImgEl = document.getElementById("cs2-wingman-img");
 
   try {
     const response = await fetch(LEETIFY_API_URL);
-    if (!response.ok) throw new Error("Failed to fetch Leetify stats");
+    if (!response.ok) throw new Error("Failed to fetch Leetify profile");
     
     const data = await response.json();
+
+    // 0. Username
+    if (nicknameEl && data.name) {
+      nicknameEl.textContent = data.name;
+    }
     
     // 1. Profile Picture
     pfpEl.src = "https://id.i-prod.leetify.com/images/v1/avatar/b10a3451-c496-4a8a-8264-5966d6153a9e";

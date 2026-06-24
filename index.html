@@ -138,11 +138,11 @@ window.addEventListener("load", () => {
     <p>I also play some games besides coding:</p>
     <ul style="list-style: none; padding-left: 0;">
       <li class="game-list-item">
-        <a href="https://csstats.gg/player/76561199104390936" class="game-trigger" target="_blank">Counter-Strike 2</a>
+        <span class="game-trigger" tabindex="0">Counter-Strike 2</span>
         <div class="game-card">
           <div class="game-card-header">
             <img src="" alt="Profile Picture" class="game-pfp" id="game-pfp">
-            <span class="game-card-title">SfymmiK</span>
+            <span class="game-card-title" id="cs2-nickname">SfymmiK</span>
           </div>
           <div class="game-card-body">
             <div class="game-stat">
@@ -160,7 +160,7 @@ window.addEventListener("load", () => {
         </div>
       </li>
       <li class="game-list-item">
-        <a href="https://namemc.com/profile/a7ef9121-81ed-4291-b4d6-cfc1105bcb5a" class="game-trigger" target="_blank">Minecraft</a>
+        <span class="game-trigger" tabindex="0">Minecraft</span>
         <div class="game-card">
           <div class="game-card-header">
             <span class="game-card-title" id="mc-nickname">Loading...</span>
@@ -171,7 +171,7 @@ window.addEventListener("load", () => {
         </div>
       </li>
       <li class="game-list-item">
-        <a href="https://osu.ppy.sh/users/34538411" class="game-trigger" target="_blank">Osu! (Lazer)</a>
+        <span class="game-trigger" tabindex="0">Osu! (Lazer)</span>
         <div class="game-card" style="width: 350px;">
           <div class="game-card-body" style="padding: 0;">
             <img src="https://lemmmy.pw/osusig/sig.php?colour=hexff66aa&uname=SFYM&pp=1&countryrank=1&flagshadow=1&flagstroke=1&darktriangles=1&onlineindicator=undefined&xpbar=1&xpbarhex" alt="Osu Signature" style="width: 100%; border-radius: 8px; display: block;">
@@ -274,5 +274,22 @@ window.addEventListener("load", () => {
       <p>Licensed under the <a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz/raw/branch/main/LICENSE" target="_blank">Apache 2.0 License</a></p>
     </footer>
   </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Mobile touch handling for game cards
+      const triggers = document.querySelectorAll('.game-trigger');
+      
+      triggers.forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+          e.preventDefault(); // Stop default action
+          const parentLi = trigger.closest('.game-list-item');
+          
+          // Toggle the active class to expand the accordion
+          parentLi.classList.toggle('active');
+        });
+      });
+    });
+  </script>
 </body>
 </html>

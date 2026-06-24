@@ -639,8 +639,21 @@ footer p {
   cursor: pointer;
   text-decoration: none;
   font-weight: 500;
-  transition: text-shadow 0.2s ease, color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   position: relative;
+  transition: text-shadow 0.2s ease, color 0.2s ease;
+}
+
+.game-trigger::before {
+  content: '▼';
+  font-size: 0.8em;
+  transition: transform 0.3s ease;
+}
+
+.game-list-item.active .game-trigger::before {
+  transform: rotate(180deg);
 }
 
 .game-trigger:hover {
@@ -687,7 +700,7 @@ footer p {
   pointer-events: none;
 }
 
-.game-list-item:hover .game-card {
+.game-list-item.active .game-card {
   opacity: 1;
   max-height: 600px; /* Increased to fit Minecraft/Osu cards */
   padding: 12px;
@@ -777,4 +790,16 @@ footer p {
   font-size: 0.95em;
   font-weight: 500;
   color: #e0e0e0;
+}
+
+
+
+@media (max-width: 768px) {
+  .game-card {
+    position: static;
+    width: 100%;
+    margin-top: 12px;
+    margin-bottom: 16px;
+    box-sizing: border-box;
+  }
 }
