@@ -680,7 +680,7 @@ footer p {
   top: 100%;
   left: 0;
   z-index: 100;
-  width: 260px;
+  width: 375px;
   background: rgba(30, 30, 35, 0.6);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
@@ -795,6 +795,9 @@ footer p {
 
 
 @media (max-width: 768px) {
+  .game-list-item {
+    width: 100%;
+  }
   .game-card {
     position: static;
     width: 100%;
