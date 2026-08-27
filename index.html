@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="author" content="Szymon Grajner (SfymmiK)">
+  <meta property="og:description" content="SfymmiK – 16 y/o programmer from Poland, into Unix-like OS, low-level experiments, and web dev.">
+  <meta name="keywords" content="sfymmik,SfymmiK,SFYMMIK,Sfymmik">
+  <meta property="og:url" content="https://sfymmik.xyz">
+  <meta property="og:site_name" content="SfymmiK's Webpage">
+  <meta name="referrer" content="no-referrer">
+  <meta property="og:title" content="SfymmiK's Webpage">
+  <meta property="og:type" content="website">
+  <meta name="title" content="SfymmiK's Webpage">
+  <meta property="og:image" content="https://sfymmik.xyz/images/pfp.png">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta name="description" content="SfymmiK – 16 y/o programmer from Poland. Unix-like OS enthusiast, web developer, low-level tinkerer.">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="preconnect" href="https://lrclib.net" crossorigin>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" type="image/x-icon" href="images/pfp.png">
+  <title>SfymmiK's Webpage</title>
+  <meta http-equiv="Content-Security-Policy"
+  content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' https: data:;
+    connect-src 'self' https://api.lanyard.rest wss://api.lanyard.rest https://lrclib.net https://api-public.cs-prod.leetify.com https://api.minetools.eu;
+  ">
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  document.body.classList.add("loaded");
+});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/skinview3d@3.0.0-alpha.1/bundles/skinview3d.bundle.min.js" defer></script>
+  <script src="js/rpc.js" defer></script>
+  <script src="js/animations.js" defer></script>
+  <script src="js/quotes_data.js" defer></script>
+  <script src="js/quote.js" defer></script>
+  <script src="js/cs2.js" defer></script>
+  <script src="js/mc.js" defer></script>
+  <script src="js/BMPR/bmpr.js" defer></script> <!-- BMP renderer made by me :) -->
+</head>
+<body>
+  <!-- ═══ CRT noise canvas (kept for CRT effect) ═══ -->
+  <canvas id="particles" aria-hidden="true"></canvas>
+
+  <div id="content">
+    <!-- ═══ HEADER ═══ -->
+    <header>
+      <img class="avatar" src="images/pfp.png" alt="SfymmiK" />
+      <div class="header-text">
+        <h1>SfymmiK's Webpage</h1>
+        <ul class="nav">
+          <li><a href="https://github.com/SFYMMIK" target="_blank">GitHub</a></li>
+          <li><a href="https://git.sfymmik.xyz/SfymmiK" target="_blank">git.sfymmik.xyz</a></li>
+          <li><a href="https://lings.sfymmik.xyz/" target="_blank">Lings</a></li>
+          <li><a href="https://www.youtube.com/@SFYMMIK" target="_blank">YouTube</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <!-- ═══ DAILY QUOTE ═══ -->
+    <blockquote class="daily-quote">
+      <span id="quoteText">Loading quote...</span>
+      <br>
+      <small id="quoteAuthor"></small>
+    </blockquote>
+
+    <hr>
+
+    <!-- ═══ ABOUT ═══ -->
+    <h2>about</h2>
+    <ul>
+      <li>Pronouns: He/Him</li>
+      <li><a href="https://en.wikipedia.org/wiki/Asexuality" target="_blank">Asexual</a></li>
+    </ul>
+    <hr>
+    <p>I'm a 16 year old programmer, and I'm also a Unix-Like Operating Systems enjoyer — building &amp; breaking things.</p>
+    <p>I mainly work on web development and low-level experiments, often sharing my projects for others to explore.</p>
+    <p>I use Arch/FreeBSD (couldn't imagine working on any other OS).</p>
+
+    <!-- ═══ DISCORD RPC CARD ═══ -->
+    <h2>activity</h2>
+    <div class="rpc-card" id="rpc">
+      <div class="rpc-top">
+        <div class="rpc-profile">
+          <img class="rpc-avatar" id="rpcAvatar" alt="Avatar">
+          <div class="rpc-who">
+            <div class="rpc-title">(Discord) Activity</div>
+            <div class="rpc-name" id="rpcName">—</div>
+          </div>
+        </div>
+        <div class="rpc-pill">
+          <span class="rpc-dot" id="rpcDot"></span>
+          <span class="rpc-status-text" id="rpcStatusText">Connecting…</span>
+        </div>
+      </div>
+      <div class="rpc-block" id="rpcGameBlock">
+        <div class="rpc-label">Playing</div>
+        <div class="rpc-line">
+          <img class="rpc-icon" id="gameIcon" alt="" hidden>
+          <div>
+            <div class="rpc-value" id="rpcGame">—</div>
+            <div class="rpc-sub" id="rpcDetails">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="rpc-sep" id="rpcSep"></div>
+      <div class="rpc-block spotify" id="rpcSpotifyBlock">
+        <div class="rpc-label">(Spotify) Listening to, in this moment..</div>
+        <div class="rpc-line">
+          <img class="rpc-cover" id="spCover" alt="" hidden>
+          <div class="sp-equalizer" id="spEqualizer" hidden>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+            <span class="eq-bar"></span>
+          </div>
+          <div>
+            <div class="rpc-value" id="spTrack">—</div>
+            <div class="rpc-sub" id="spArtist">—</div>
+            <div class="sp-actions">
+              <button class="sp-copy-btn" id="copySpotifyBtn" disabled>Copy Spotify link</button>
+              <span class="sp-copy-status" id="copySpotifyStatus"></span>
+            </div>
+          </div>
+          <!-- Inline lyric display -->
+          <div id="lyricsSection" class="lyrics-inline" hidden>
+            <p id="lyricsStatus"></p>
+            <div id="lyricsContainer"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ GAMES ═══ -->
+    <h2>games</h2>
+    <p>I also play some games besides coding:</p>
+    <ul style="list-style: none; padding-left: 0;">
+      <li class="game-list-item">
+        <span class="game-trigger" tabindex="0">Counter-Strike 2</span>
+        <div class="game-card">
+          <div class="game-card-header">
+            <img src="" alt="Profile Picture" class="game-pfp" id="game-pfp">
+            <span class="game-card-title" id="cs2-nickname">SfymmiK</span>
+          </div>
+          <div class="game-card-body">
+            <div class="game-stat">
+              <span class="game-stat-label">Premier</span>
+              <span class="cs2-premier-rating" id="cs2-premier">Loading...</span>
+            </div>
+            <div class="game-stat">
+              <span class="game-stat-label">Wingman</span>
+              <div class="cs2-wingman-wrap">
+                <img src="" alt="Wingman Rank" class="cs2-wingman-img" id="cs2-wingman-img" hidden>
+                <span class="cs2-wingman-name" id="cs2-wingman-name">Loading...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li class="game-list-item">
+        <span class="game-trigger" tabindex="0">Minecraft</span>
+        <div class="game-card">
+          <div class="game-card-header">
+            <span class="game-card-title" id="mc-nickname">Loading...</span>
+          </div>
+          <div class="game-card-body">
+            <div id="mc-3d-viewer" style="width: 100%; height: 300px; border-radius: 8px; overflow: hidden; background: rgba(0,0,0,0.3);"></div>
+          </div>
+        </div>
+      </li>
+      <li class="game-list-item">
+        <span class="game-trigger" tabindex="0">Osu! (Lazer)</span>
+        <div class="game-card" style="width: 350px;">
+          <div class="game-card-body" style="padding: 0;">
+            <img src="https://lemmmy.pw/osusig/sig.php?colour=hexff66aa&uname=SFYM&pp=1&countryrank=1&flagshadow=1&flagstroke=1&darktriangles=1&onlineindicator=undefined&xpbar=1&xpbarhex" alt="Osu Signature" loading="lazy" style="width: 100%; border-radius: 8px; display: block;">
+          </div>
+        </div>
+      </li>
+    </ul>
+
+    <!-- ═══ PROJECTS ═══ -->
+    <h2>projects</h2>
+    <p>Some of my current work:</p>
+    <ol>
+      <li><a href="https://git.sfymmik.xyz/SfymmiK/SfKchan/" target="_blank">SfKchan</a>, an imageboard made by me (with purely original code)</li>
+      <li><a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz" target="_blank">sfymmik.xyz</a>, this website</li>
+      <li><a href="https://git.sfymmik.xyz/SfymmiK/TermmiK" target="_blank">TermmiK</a></li>
+      <li><a href="https://github.com/SFYMMIK/web.sfymmik" target="_blank">web.sfymmik</a></li>
+      <li><a href="https://git.sfymmik.xyz/SfymmiK/LazerScope/" target="_blank">LazerScope</a></li>
+      <li><a href="https://git.sfymmik.xyz/Lings/Remi/" target="_blank">Remi</a></li>
+    </ol>
+
+    <!-- ═══ ORGS ═══ -->
+    <h2>organizations</h2>
+    <ul>
+      <li><a href="https://git.sfymmik.xyz/Lings" target="_blank">Lings</a> — Role: Owner (1 of 3)</li>
+    </ul>
+
+    <!-- ═══ CONTACT ═══ -->
+    <h2>contact / socials</h2>
+    <ul>
+      <li>Discord: <strong>sfymmik</strong></li>
+    </ul>
+
+    <!-- ═══ PROFILES ═══ -->
+    <h2>profiles</h2>
+    <ul>
+      <li><a href="https://steamcommunity.com/id/JustSfymmiK/" target="_blank">Steam</a></li>
+      <li><a href="https://namemc.com/profile/a7ef9121-81ed-4291-b4d6-cfc1105bcb5a" target="_blank">Minecraft (NameMC)</a></li>
+      <li><a href="https://stats.fm/sfymmik" target="_blank">Spotify (stats.fm)</a></li>
+    </ul>
+
+    <hr>
+
+    <!-- ═══ 88×31 BUTTON ═══ -->
+    <h2>linkback</h2>
+    <p>If you like my work, you can mention my website via an 88×31 button:</p>
+    <div class="code-tabs">
+      <span class="code-tab active" id="tabBmpr" onclick="document.getElementById('codeBmpr').hidden=false;document.getElementById('codeImg').hidden=true;this.classList.add('active');document.getElementById('tabImg').classList.remove('active')">BMPR (recommended)</span>
+      <span class="code-tab" id="tabImg" onclick="document.getElementById('codeImg').hidden=false;document.getElementById('codeBmpr').hidden=true;this.classList.add('active');document.getElementById('tabBmpr').classList.remove('active')">Normal &lt;img&gt;</span>
+    </div>
+    <pre id="codeBmpr"><code>&lt;a href="https://sfymmik.xyz/"&gt;
+  &lt;bmp-img
+    src="https://sfymmik.xyz/images/button.bmp"
+    alt="SfymmiK 88x31 button"
+    title="SfymmiK's Webpage"
+    width="88px"
+    height="31px"&gt;
+  &lt;/bmp-img&gt;
+&lt;/a&gt;</code></pre>
+    <pre id="codeImg" hidden><code>&lt;a href="https://sfymmik.xyz/"&gt;
+  &lt;img
+    src="https://sfymmik.xyz/images/button.bmp"
+    alt="SfymmiK 88x31 button"
+    title="SfymmiK's Webpage"
+    width="88px"
+    height="31px"&gt;
+&lt;/a&gt;</code></pre>
+    <p><strong>Note:</strong> BMP is natively supported by modern browsers but may break on Safari or older browsers. Services like Cloudflare can send the wrong MIME type or try to "optimize" the image. Using <a href="https://git.sfymmik.xyz/Lings/BMPR">BMPR</a> (which I actively maintain) avoids these issues entirely.</p>
+
+    <hr>
+
+    <!-- ═══ FRIENDS ═══ -->
+    <h2>friends / colleagues</h2>
+    <div class="friends-grid">
+      <a href="https://sdgscryv.xyz/" target="_blank">Scryv</a>
+      <a href="https://maydo.uk" target="_blank">Maydo</a>
+      <a href="https://lockos-08.github.io/Lock-Site/" target="_blank">Krispy</a>
+      <a href="https://elkibelos.sfymmik.xyz" target="_blank">ELKibelos</a>
+      <a href="https://theguynamedcj.github.io/" target="_blank">CJ</a>
+    </div>
+
+    <hr>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer>
+      <div class="badges">
+        <a href="https://kernel.org/" target="_blank"><img src="images/madeon_linux.gif" alt="Linux" width="88" height="31"></a>
+        <a href="https://archlinux.org" target="_blank"><img src="images/arch-badge.png" alt="Arch Linux" width="88" height="31"></a>
+        <bmp-img src="images/button.bmp" alt="SfymmiK" title="SfymmiK" width="88" height="31"></bmp-img>
+        <a href="https://sdgscryv.xyz" target="_blank"><img src="images/sdgScryv.gif"></a>
+        <a href="https://freebsd.org" target="_blank"><img src="images/freebsd-badge.png" alt="FreeBSD" width="88" height="31"></a>
+        <a href="https://gentoo.org" target="_blank"><img src="images/gentoo-badge.png" alt="Gentoo" width="88" height="31"></a>
+        <a href="javascript:void(0)"><img src="images/eu.png" alt="European Union"></a>
+        <a href="javascript:void(0)"><img src="images/right2repair.png" alt="Right to Repair"></a>
+      </div>
+      <hr>
+      <p>Powered by FreeBSD</p>
+      <p>
+        Made by Szymon Grajner (SfymmiK)
+        <a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz" target="_blank"><img id="git-svg" src="images/git.svg" alt="Git"></a>
+      </p>
+      <p>Licensed under the <a href="https://git.sfymmik.xyz/SfymmiK/sfymmik.xyz/raw/branch/main/LICENSE" target="_blank">Apache 2.0 License</a></p>
+    </footer>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Mobile touch handling for game cards
+      const triggers = document.querySelectorAll('.game-trigger');
+      
+      triggers.forEach(trigger => {
+        const toggleCard = (e) => {
+          e.preventDefault(); // Stop default action
+          const parentLi = trigger.closest('.game-list-item');
+          parentLi.classList.toggle('active');
+        };
+        trigger.addEventListener('click', toggleCard);
+        trigger.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            toggleCard(e);
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
