@@ -2,10 +2,12 @@
   "use strict";
 
   const CFG = {
-    hexSize: 30, // Radius of hexagon
-    color: "rgba(30, 184, 231, 0.1)", // Base color
-    glowColor: "rgba(30, 184, 231, 0.8)", // Highlight color
-    mouseRadius: 150, // Hover radius
+    hexSize: 30,
+    mouseRadius: 160,
+    gridColor: "rgba(108, 172, 236, 0.05)",
+    glowColor: "rgba(108, 172, 236, 1)",
+    levels: 3,
+    waveSpeed: 0.6,
     fps: 30
   };
 
@@ -14,27 +16,52 @@
       this.cvs = canvas;
       this.ctx = canvas.getContext("2d");
       this.mouse = { x: -1000, y: -1000 };
-      
+      this.t = 0;
+      this._loop = this._loop.bind(this);
+
       this._resize();
       this._bind();
-      
+
       this.interval = 1000 / CFG.fps;
       this.lastFrame = 0;
       this._loop(0);
     }
 
     _resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       this.w = window.innerWidth;
       this.h = window.innerHeight;
-      this.cvs.width = this.w;
-      this.cvs.height = this.h;
-      
-      // Calculate hexagon math
-      this.hexWidth = Math.sqrt(3) * CFG.hexSize;
-      this.hexHeight = 2 * CFG.hexSize;
-      
-      this.cols = Math.ceil(this.w / this.hexWidth) + 1;
-      this.rows = Math.ceil(this.h / (this.hexHeight * 0.75)) + 1;
+      this.cvs.width = Math.round(this.w * dpr);
+      this.cvs.height = Math.round(this.h * dpr);
+      this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const size = CFG.hexSize;
+      this.hexWidth = Math.sqrt(3) * size;
+      this.hexHeight = 2 * size;
+
+      // precompute hex corners
+      this.verts = [];
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI / 3) * i - Math.PI / 6;
+        this.verts.push(Math.cos(a) * size, Math.sin(a) * size);
+      }
+
+      // precompute cell centers
+      const cols = Math.ceil(this.w / this.hexWidth) + 1;
+      const rows = Math.ceil(this.h / (this.hexHeight * 0.75)) + 1;
+      this.cells = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          this.cells.push(
+            c * this.hexWidth + (r % 2 === 1 ? this.hexWidth / 2 : 0),
+            r * this.hexHeight * 0.75
+          );
+        }
+      }
+
+      // glow buckets
+      this.buckets = [];
+      for (let l = 0; l < CFG.levels; l++) this.buckets.push([]);
     }
 
     _bind() {
@@ -53,51 +80,90 @@
       });
     }
 
-    _drawHex(x, y, r, opacity) {
-      this.ctx.beginPath();
-      for (let i = 0; i < 6; i++) {
-        const angle = (Math.PI / 3) * i - (Math.PI / 6);
-        const px = x + r * Math.cos(angle);
-        const py = y + r * Math.sin(angle);
-        if (i === 0) this.ctx.moveTo(px, py);
-        else this.ctx.lineTo(px, py);
+    _hexPath(arr, off, x, y) {
+      const v = this.verts;
+      arr[off] = x + v[0];
+      arr[off + 1] = y + v[1];
+      for (let i = 1; i < 6; i++) {
+        arr[off + i * 2] = x + v[i * 2];
+        arr[off + i * 2 + 1] = y + v[i * 2 + 1];
       }
-      this.ctx.closePath();
-      
-      this.ctx.strokeStyle = CFG.color;
-      this.ctx.lineWidth = 1;
-      this.ctx.stroke();
-
-      if (opacity > 0) {
-        this.ctx.fillStyle = `rgba(30, 184, 231, ${opacity})`;
-        this.ctx.fill();
-      }
+      return off + 12;
     }
 
     _draw() {
-      this.ctx.clearRect(0, 0, this.w, this.h);
+      const ctx = this.ctx;
+      ctx.clearRect(0, 0, this.w, this.h);
 
-      for (let r = 0; r < this.rows; r++) {
-        for (let c = 0; c < this.cols; c++) {
-          const x = c * this.hexWidth + (r % 2 === 1 ? this.hexWidth / 2 : 0);
-          const y = r * this.hexHeight * 0.75;
+      this.t += 0.03;
+      const cells = this.cells;
+      const mr = CFG.mouseRadius;
+      const mx = this.mouse.x;
+      const my = this.mouse.y;
+      const buckets = this.buckets;
+      for (let l = 0; l < buckets.length; l++) buckets[l].length = 0;
 
-          const dx = this.mouse.x - x;
-          const dy = this.mouse.y - y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+      // base grid (one path)
+      ctx.beginPath();
+      for (let i = 0; i < cells.length; i += 2) {
+        const x = cells[i];
+        const y = cells[i + 1];
+        const v = this.verts;
+        ctx.moveTo(x + v[0], y + v[1]);
+        for (let k = 1; k < 6; k++) ctx.lineTo(x + v[k * 2], y + v[k * 2 + 1]);
+        ctx.closePath();
+      }
+      ctx.strokeStyle = CFG.gridColor;
+      ctx.lineWidth = 1;
+      ctx.stroke();
 
-          let opacity = 0;
-          if (dist < CFG.mouseRadius) {
-            opacity = (1 - (dist / CFG.mouseRadius)) * 0.6; // Fade out based on distance
+      for (let i = 0; i < cells.length; i += 2) {
+        const x = cells[i];
+        const y = cells[i + 1];
+
+        // idle wave
+        const wave = Math.sin(x * 0.012 + y * 0.018 - this.t * CFG.waveSpeed);
+        let alpha = wave > 0.55 ? (wave - 0.55) * 0.22 : 0;
+
+        const dx = mx - x;
+        const dy = my - y;
+        if (dx > -mr && dx < mr && dy > -mr && dy < mr) {
+          const d2 = dx * dx + dy * dy;
+          if (d2 < mr * mr) {
+            const glow = (1 - Math.sqrt(d2) / mr) * 0.55;
+            if (glow > alpha) alpha = glow;
           }
-
-          this._drawHex(x, y, CFG.hexSize, opacity);
         }
+
+        if (alpha > 0.02) {
+          let lvl = (alpha / 0.55 * CFG.levels) | 0;
+          if (lvl >= CFG.levels) lvl = CFG.levels - 1;
+          this._hexPath(buckets[lvl], buckets[lvl].length, x, y);
+        }
+      }
+
+      // lit hexes per level
+      for (let l = 0; l < CFG.levels; l++) {
+        const arr = buckets[l];
+        if (!arr.length) continue;
+        ctx.beginPath();
+        for (let o = 0; o < arr.length; o += 12) {
+          ctx.moveTo(arr[o], arr[o + 1]);
+          for (let k = 1; k < 6; k++) ctx.lineTo(arr[o + k * 2], arr[o + k * 2 + 1]);
+          ctx.closePath();
+        }
+        const strength = (l + 1) / CFG.levels;
+        ctx.fillStyle = `rgba(108, 172, 236, ${0.10 * strength})`;
+        ctx.fill();
+        ctx.strokeStyle = `rgba(160, 205, 245, ${0.18 * strength})`;
+        ctx.stroke();
       }
     }
 
     _loop(timestamp) {
-      requestAnimationFrame((t) => this._loop(t));
+      requestAnimationFrame(this._loop);
+      // pause on reduced motion
+      if (document.documentElement.matches(".reduced-motion, .motion-off")) return;
       const delta = timestamp - this.lastFrame;
       if (delta < this.interval) return;
       this.lastFrame = timestamp - (delta % this.interval);

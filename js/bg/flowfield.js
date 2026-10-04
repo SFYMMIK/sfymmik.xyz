@@ -2,11 +2,16 @@
   "use strict";
 
   const CFG = {
-    particleCount: 1500,
+    maxCount: 1400,
     baseSpeed: 1.5,
-    color: "rgba(30, 184, 231, 0.4)",
-    glowColor: "rgba(30, 184, 231, 0.8)",
     scale: 0.003,
+    dimColor: "rgba(108, 172, 236, 1)",
+    brightColor: "rgba(160, 208, 250, 1)",
+    accentColor: "rgba(90, 230, 124, 1)",
+    dimAlpha: 0.30,
+    brightAlpha: 0.75,
+    accentChance: 0.06,
+    fade: "rgba(10, 10, 14, 0.12)",
     fps: 60
   };
 
@@ -15,33 +20,38 @@
       this.cvs = canvas;
       this.ctx = canvas.getContext("2d");
       this.zOff = 0;
-      
+      this._loop = this._loop.bind(this);
+
       this._resize();
       this._initParticles();
       this._bind();
-      
+
       this.interval = 1000 / CFG.fps;
       this.lastFrame = 0;
       this._loop(0);
     }
 
     _resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       this.w = window.innerWidth;
       this.h = window.innerHeight;
-      this.cvs.width = this.w;
-      this.cvs.height = this.h;
+      this.cvs.width = Math.round(this.w * dpr);
+      this.cvs.height = Math.round(this.h * dpr);
+      this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     _initParticles() {
+      const count = Math.min(CFG.maxCount, Math.floor((this.w * this.h) / 900));
       this.particles = [];
-      const pCount = Math.min(CFG.particleCount, Math.floor((this.w * this.h) / 800));
-      for (let i = 0; i < pCount; i++) {
+      for (let i = 0; i < count; i++) {
         this.particles.push({
           x: Math.random() * this.w,
           y: Math.random() * this.h,
           speed: Math.random() * CFG.baseSpeed + 0.5,
           life: Math.random() * 100,
-          maxLife: Math.random() * 200 + 50
+          maxLife: Math.random() * 200 + 50,
+          accent: Math.random() < CFG.accentChance,
+          bright: false
         });
       }
     }
@@ -64,40 +74,65 @@
     }
 
     _draw() {
-      this.ctx.fillStyle = "rgba(10, 10, 14, 0.15)";
-      this.ctx.fillRect(0, 0, this.w, this.h);
+      const ctx = this.ctx;
+
+      // trails
+      ctx.fillStyle = CFG.fade;
+      ctx.fillRect(0, 0, this.w, this.h);
 
       this.zOff += 0.005;
-      this.ctx.fillStyle = CFG.color;
 
-      for (let i = 0; i < this.particles.length; i++) {
-        const p = this.particles[i];
+      const pts = this.particles;
+
+      // update all, then paint in grouped passes
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
         const angle = this._getAngle(p.x, p.y, this.zOff);
 
         p.x += Math.cos(angle) * p.speed;
         p.y += Math.sin(angle) * p.speed;
         p.life++;
-
-        this.ctx.beginPath();
-        if (p.speed > CFG.baseSpeed * 0.8) {
-          this.ctx.fillStyle = CFG.glowColor;
-          this.ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
-        } else {
-          this.ctx.fillStyle = CFG.color;
-          this.ctx.arc(p.x, p.y, 0.8, 0, Math.PI * 2);
-        }
-        this.ctx.fill();
+        p.bright = p.speed > CFG.baseSpeed * 0.8;
 
         if (p.x < 0 || p.x > this.w || p.y < 0 || p.y > this.h || p.life > p.maxLife) {
           p.x = Math.random() * this.w;
           p.y = Math.random() * this.h;
           p.life = 0;
+          p.accent = Math.random() < CFG.accentChance;
         }
       }
+
+      // dim dust
+      ctx.globalAlpha = CFG.dimAlpha;
+      ctx.fillStyle = CFG.dimColor;
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        if (!p.accent && !p.bright) ctx.fillRect(p.x, p.y, 1.1, 1.1);
+      }
+
+      // bright = faster
+      ctx.globalAlpha = CFG.brightAlpha;
+      ctx.fillStyle = CFG.brightColor;
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        if (!p.accent && p.bright) ctx.fillRect(p.x, p.y, 1.5, 1.5);
+      }
+
+      // rare green sparks
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = CFG.accentColor;
+      for (let i = 0; i < pts.length; i++) {
+        const p = pts[i];
+        if (p.accent) ctx.fillRect(p.x, p.y, 1.5, 1.5);
+      }
+
+      ctx.globalAlpha = 1;
     }
 
     _loop(timestamp) {
-      requestAnimationFrame((t) => this._loop(t));
+      requestAnimationFrame(this._loop);
+      // pause on reduced motion
+      if (document.documentElement.matches(".reduced-motion, .motion-off")) return;
       const delta = timestamp - this.lastFrame;
       if (delta < this.interval) return;
       this.lastFrame = timestamp - (delta % this.interval);

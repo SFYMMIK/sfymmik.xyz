@@ -7,22 +7,32 @@ document.addEventListener("DOMContentLoaded", () => {
   if (!quoteTextEl || !quoteAuthorEl) return;
 
   try {
-    // ALL_QUOTES is defined in js/quotes_data.js which is loaded before this script
+    // from quotes_data.js
     if (typeof ALL_QUOTES === "undefined" || !ALL_QUOTES.length) {
       throw new Error("ALL_QUOTES array is not loaded");
     }
 
-    // Filter for short quotes only (max 100 characters)
+    // only short quotes fit
     const shortQuotes = ALL_QUOTES.filter(q => q.text && q.text.length <= 100);
+    if (!shortQuotes.length) {
+      throw new Error("No quotes available");
+    }
 
-    // Pick a completely random short quote each time the page loads
-    const randomIndex = Math.floor(Math.random() * shortQuotes.length);
-    const randomQuote = shortQuotes[randomIndex];
+    // random quote, don't repeat the last one
+    let index = Math.floor(Math.random() * shortQuotes.length);
+    try {
+      const last = Number(sessionStorage.getItem("sfymmik.lastQuote"));
+      if (shortQuotes.length > 1 && index === last) {
+        index = (index + 1 + Math.floor(Math.random() * (shortQuotes.length - 1))) % shortQuotes.length;
+      }
+      sessionStorage.setItem("sfymmik.lastQuote", String(index));
+    } catch (e) { /* storage unavailable — random is still fine */ }
 
-    quoteTextEl.textContent = `"${randomQuote.text}"`;
-    quoteAuthorEl.textContent = `- ${randomQuote.author || "Unknown"}`;
+    const quote = shortQuotes[index];
+    quoteTextEl.textContent = `"${quote.text}"`;
+    quoteAuthorEl.textContent = `- ${quote.author || "Unknown"}`;
   } catch (err) {
-    console.error("[Quotes] Error loading daily quote:", err);
+    console.error("[Quotes] Error loading quote:", err);
     quoteTextEl.textContent = `"Talk is cheap. Show me the code."`;
     quoteAuthorEl.textContent = `- Linus Torvalds`;
   }

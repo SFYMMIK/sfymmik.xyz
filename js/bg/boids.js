@@ -2,11 +2,14 @@
   "use strict";
 
   const CFG = {
-    boidCount: 150,
-    color: "#1eb8e7",
+    maxCount: 140,
+    color: "rgba(108, 172, 236, 0.9)",
+    accentColor: "rgba(90, 230, 124, 0.8)",
+    accentChance: 0.04,
     maxSpeed: 2,
-    maxForce: 0.05,
     visualRange: 50,
+    separationRange: 20,
+    fade: "rgba(10, 10, 14, 0.35)",
     fps: 60
   };
 
@@ -14,32 +17,36 @@
     constructor(canvas) {
       this.cvs = canvas;
       this.ctx = canvas.getContext("2d");
-      
+      this._loop = this._loop.bind(this);
+
       this._resize();
       this._initBoids();
       this._bind();
-      
+
       this.interval = 1000 / CFG.fps;
       this.lastFrame = 0;
       this._loop(0);
     }
 
     _resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       this.w = window.innerWidth;
       this.h = window.innerHeight;
-      this.cvs.width = this.w;
-      this.cvs.height = this.h;
+      this.cvs.width = Math.round(this.w * dpr);
+      this.cvs.height = Math.round(this.h * dpr);
+      this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     _initBoids() {
+      const count = Math.min(CFG.maxCount, Math.floor((this.w * this.h) / 9000));
       this.boids = [];
-      const count = Math.min(CFG.boidCount, Math.floor((this.w * this.h) / 8000));
       for (let i = 0; i < count; i++) {
         this.boids.push({
           x: Math.random() * this.w,
           y: Math.random() * this.h,
           vx: (Math.random() - 0.5) * CFG.maxSpeed,
-          vy: (Math.random() - 0.5) * CFG.maxSpeed
+          vy: (Math.random() - 0.5) * CFG.maxSpeed,
+          accent: Math.random() < CFG.accentChance
         });
       }
     }
@@ -55,93 +62,142 @@
       });
     }
 
-    _distance(b1, b2) {
-      return Math.sqrt((b1.x - b2.x)**2 + (b1.y - b2.y)**2);
+    // spatial grid: only check neighbours
+    _buildGrid() {
+      const cell = CFG.visualRange;
+      const cols = Math.ceil(this.w / cell) + 1;
+      const rows = Math.ceil(this.h / cell) + 1;
+      const grid = new Array(cols * rows);
+
+      for (let i = 0; i < this.boids.length; i++) {
+        const b = this.boids[i];
+        const cx = Math.min(cols - 1, Math.max(0, (b.x / cell) | 0));
+        const cy = Math.min(rows - 1, Math.max(0, (b.y / cell) | 0));
+        const k = cy * cols + cx;
+        const bucket = grid[k] || (grid[k] = []);
+        bucket.push(b);
+      }
+
+      this.grid = grid;
+      this.cols = cols;
+      this.rows = rows;
+      this.cell = cell;
     }
 
     _draw() {
-      this.ctx.fillStyle = "rgba(10, 10, 14, 0.4)";
-      this.ctx.fillRect(0, 0, this.w, this.h);
+      const ctx = this.ctx;
+      ctx.fillStyle = CFG.fade;
+      ctx.fillRect(0, 0, this.w, this.h);
+
+      this._buildGrid();
+
+      const range = CFG.visualRange;
+      const range2 = range * range;
+      const sep2 = CFG.separationRange * CFG.separationRange;
+      const maxSpeed2 = CFG.maxSpeed * CFG.maxSpeed;
 
       for (let i = 0; i < this.boids.length; i++) {
-        let b = this.boids[i];
-        
-        // Flocking variables
-        let centerX = 0, centerY = 0, avgVx = 0, avgVy = 0, numNeighbors = 0;
+        const b = this.boids[i];
+
+        let centerX = 0, centerY = 0, avgVx = 0, avgVy = 0, num = 0;
         let sepX = 0, sepY = 0;
 
-        for (let j = 0; j < this.boids.length; j++) {
-          if (i === j) continue;
-          let other = this.boids[j];
-          let dist = this._distance(b, other);
+        const cx = Math.min(this.cols - 1, Math.max(0, (b.x / this.cell) | 0));
+        const cy = Math.min(this.rows - 1, Math.max(0, (b.y / this.cell) | 0));
 
-          if (dist < CFG.visualRange) {
-            centerX += other.x;
-            centerY += other.y;
-            avgVx += other.vx;
-            avgVy += other.vy;
-            numNeighbors++;
+        for (let gy = cy - 1; gy <= cy + 1; gy++) {
+          if (gy < 0 || gy >= this.rows) continue;
+          for (let gx = cx - 1; gx <= cx + 1; gx++) {
+            if (gx < 0 || gx >= this.cols) continue;
+            const bucket = this.grid[gy * this.cols + gx];
+            if (!bucket) continue;
 
-            if (dist < 20) {
-              sepX += b.x - other.x;
-              sepY += b.y - other.y;
+            for (let k = 0; k < bucket.length; k++) {
+              const other = bucket[k];
+              if (other === b) continue;
+
+              const dx = other.x - b.x;
+              const dy = other.y - b.y;
+              const d2 = dx * dx + dy * dy;
+              if (d2 > range2 || d2 === 0) continue;
+
+              centerX += other.x;
+              centerY += other.y;
+              avgVx += other.vx;
+              avgVy += other.vy;
+              num++;
+
+              if (d2 < sep2) {
+                sepX += b.x - other.x;
+                sepY += b.y - other.y;
+              }
             }
           }
         }
 
-        if (numNeighbors > 0) {
-          // Cohesion
-          centerX /= numNeighbors;
-          centerY /= numNeighbors;
-          b.vx += (centerX - b.x) * 0.005;
-          b.vy += (centerY - b.y) * 0.005;
-
-          // Alignment
-          avgVx /= numNeighbors;
-          avgVy /= numNeighbors;
-          b.vx += (avgVx - b.vx) * 0.05;
-          b.vy += (avgVy - b.vy) * 0.05;
+        if (num > 0) {
+          // cohesion
+          b.vx += ((centerX / num) - b.x) * 0.005;
+          b.vy += ((centerY / num) - b.y) * 0.005;
+          // alignment
+          b.vx += ((avgVx / num) - b.vx) * 0.05;
+          b.vy += ((avgVy / num) - b.vy) * 0.05;
         }
 
-        // Separation
+        // separation
         b.vx += sepX * 0.05;
         b.vy += sepY * 0.05;
 
-        // Limit speed
-        let speed = Math.sqrt(b.vx**2 + b.vy**2);
-        if (speed > CFG.maxSpeed) {
-          b.vx = (b.vx / speed) * CFG.maxSpeed;
-          b.vy = (b.vy / speed) * CFG.maxSpeed;
+        // limit speed
+        const speed2 = b.vx * b.vx + b.vy * b.vy;
+        if (speed2 > maxSpeed2) {
+          const inv = CFG.maxSpeed / Math.sqrt(speed2);
+          b.vx *= inv;
+          b.vy *= inv;
         }
 
-        // Move
+        // move + wrap
         b.x += b.vx;
         b.y += b.vy;
-
-        // Wrap edges
         if (b.x < 0) b.x = this.w;
         if (b.x > this.w) b.x = 0;
         if (b.y < 0) b.y = this.h;
         if (b.y > this.h) b.y = 0;
-
-        // Draw Triangle
-        let angle = Math.atan2(b.vy, b.vx);
-        this.ctx.save();
-        this.ctx.translate(b.x, b.y);
-        this.ctx.rotate(angle);
-        this.ctx.beginPath();
-        this.ctx.moveTo(4, 0);
-        this.ctx.lineTo(-4, 3);
-        this.ctx.lineTo(-4, -3);
-        this.ctx.closePath();
-        this.ctx.fillStyle = CFG.color;
-        this.ctx.fill();
-        this.ctx.restore();
       }
+
+      // all triangles in one path
+      this._fillBoids(ctx, false);
+      this._fillBoids(ctx, true);
+    }
+
+    _fillBoids(ctx, accent) {
+      ctx.beginPath();
+      let any = false;
+
+      for (let i = 0; i < this.boids.length; i++) {
+        const b = this.boids[i];
+        if (b.accent !== accent) continue;
+        any = true;
+
+        const angle = Math.atan2(b.vy, b.vx);
+        const ca = Math.cos(angle);
+        const sa = Math.sin(angle);
+
+        ctx.moveTo(b.x + ca * 4, b.y + sa * 4);
+        ctx.lineTo(b.x + (-4 * ca - 3 * sa), b.y + (-4 * sa + 3 * ca));
+        ctx.lineTo(b.x + (-4 * ca + 3 * sa), b.y + (-4 * sa - 3 * ca));
+        ctx.closePath();
+      }
+
+      if (!any) return;
+      ctx.fillStyle = accent ? CFG.accentColor : CFG.color;
+      ctx.fill();
     }
 
     _loop(timestamp) {
-      requestAnimationFrame((t) => this._loop(t));
+      requestAnimationFrame(this._loop);
+      // pause on reduced motion
+      if (document.documentElement.matches(".reduced-motion, .motion-off")) return;
       const delta = timestamp - this.lastFrame;
       if (delta < this.interval) return;
       this.lastFrame = timestamp - (delta % this.interval);

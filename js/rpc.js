@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const WS_URL = "wss://api.lanyard.rest/socket";
   const API_URL = `https://api.lanyard.rest/v1/users/${USER_ID}`;
 
-  // ---- Elements
+  // elements
   const dot = document.getElementById("rpcDot");
   const statusText = document.getElementById("rpcStatusText");
   const avatar = document.getElementById("rpcAvatar");
@@ -14,29 +14,42 @@ document.addEventListener("DOMContentLoaded", () => {
   const gameEl = document.getElementById("rpcGame");
   const detailsEl = document.getElementById("rpcDetails");
   const spCover = document.getElementById("spCover");
+  const spRecord = document.getElementById("spRecord");
   const spTrack = document.getElementById("spTrack");
   const spArtist = document.getElementById("spArtist");
-  const copySpotifyBtn = document.getElementById("copySpotifyBtn");
-  const copySpotifyStatus = document.getElementById("copySpotifyStatus");
-  const spEqualizer = document.getElementById("spEqualizer");
-  // ---- RPC blocks (toggled by status)
+  // game + spotify blocks
   const rpcGameBlock = document.getElementById("rpcGameBlock");
   const rpcSep = document.getElementById("rpcSep");
   const rpcSpotifyBlock = document.getElementById("rpcSpotifyBlock");
-  // ---- Lyrics Elements
+  // lyrics elements
   const lyricsSection = document.getElementById("lyricsSection");
   const lyricsContainer = document.getElementById("lyricsContainer");
   const lyricsStatus = document.getElementById("lyricsStatus");
+  // overlay elements
+  const contentEl = document.getElementById("content");
+  const spExpand = document.getElementById("spExpand");
+  const overlay = document.getElementById("lyricsOverlay");
+  const ovClose = document.getElementById("ovClose");
+  const ovCover = document.getElementById("ovCover");
+  const ovTitle = document.getElementById("ovTitle");
+  const ovArtist = document.getElementById("ovArtist");
+  const ovLyrics = document.getElementById("ovLyrics");
+  const ovLyricList = document.getElementById("ovLyricList");
+  const ovBgArt = document.getElementById("ovBgArt");
+  const ovBgLyrics = document.getElementById("ovBgLyrics");
+  const ovBgPrev = document.getElementById("ovBgPrev");
+  const ovBgCur = document.getElementById("ovBgCur");
+  const ovBgNext = document.getElementById("ovBgNext");
 
-  // ---- Sanity check
+  // bail if anything's missing
   const required = {
     dot, statusText, avatar, nameEl,
     gameIcon, gameEl, detailsEl,
-    spCover, spTrack, spArtist,
-    copySpotifyBtn, copySpotifyStatus,
-    spEqualizer,
+    spCover, spRecord, spTrack, spArtist,
     rpcGameBlock, rpcSep, rpcSpotifyBlock,
-    lyricsSection, lyricsContainer, lyricsStatus
+    lyricsSection, lyricsContainer, lyricsStatus,
+    spExpand, overlay, ovClose, ovCover, ovTitle, ovArtist, ovLyrics, ovLyricList,
+    ovBgArt, ovBgLyrics, ovBgPrev, ovBgCur, ovBgNext
   };
   for (const [k, v] of Object.entries(required)) {
     if (!v) {
@@ -45,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // ---- Status
+  // status
   const statusColor = {
     online: "#3ba55d",
     idle: "#faa61a",
@@ -53,41 +66,25 @@ document.addEventListener("DOMContentLoaded", () => {
     offline: "#747f8d"
   };
 
-  // ---- Spotify link copy
-  let currentSpotifyUrl = null;
-  function spotifyTrackUrl(trackId) {
-    return trackId ? `https://open.spotify.com/track/${trackId}` : null;
-  }
-  async function copyText(text) {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return;
+  // album art
+  function setAlbumArt(url) {
+    if (url) {
+      spCover.src = url;
+      spCover.hidden = false;
+      spRecord.hidden = false;
+    } else {
+      spCover.hidden = true;
+      spRecord.hidden = true;
     }
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.setAttribute("readonly", "");
-    ta.style.position = "fixed";
-    ta.style.top = "-9999px";
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    document.body.removeChild(ta);
   }
-  function setCopyUi({ enabled, status }) {
-    copySpotifyBtn.disabled = !enabled;
-    copySpotifyStatus.textContent = status || "";
+
+  // set text + tooltip, animate on change
+  function setText(el, text) {
+    if (el.textContent === text) return;
+    el.textContent = text;
+    el.title = text;
+    restartAnim(el);
   }
-  copySpotifyBtn.addEventListener("click", async () => {
-    if (!currentSpotifyUrl) return;
-    try {
-      await copyText(currentSpotifyUrl);
-      setCopyUi({ enabled: true, status: "Copied ✅" });
-      setTimeout(() => setCopyUi({ enabled: true, status: "" }), 1200);
-    } catch (e) {
-      console.error("[Lanyard] copy failed:", e);
-      setCopyUi({ enabled: true, status: "Copy failed ❌" });
-    }
-  });
 
   function statusLabel(s) {
     return s === "online" ? "Online"
@@ -96,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : "Offline";
   }
 
-  // ---- Discord Avatar
+  // discord avatar
   function discordAvatarUrl(user) {
     if (user?.avatar) {
       return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=128`;
@@ -120,15 +117,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return `https://cdn.discordapp.com/app-assets/${activity.application_id}/${key}.png`;
   }
 
-  // =========================================
-  //  LYRICS ENGINE
-  // =========================================
+  // lyrics engine
   let syncedLyrics = [];
   let lastLyricsTrackId = null;
   let spotifyStartMs = null;
   let lyricsRafId = null;
   let lastActiveIdx = -1;
   const lyricsCache = new Map();
+  let currentTrack = { song: "", artist: "", cover: null };
+  let lyricEls = [];
+  let builtLyricsRef = null;
 
   function parseLRC(lrc) {
     if (!lrc) return [];
@@ -163,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
         q: `${cleanSong} ${primaryArtist}`
       });
 
-      // Race: resolve as soon as either request returns valid lyrics
+      // first fetch to return lyrics wins
       const result = await new Promise(resolve => {
         let done = false;
         let pending = 2;
@@ -203,6 +201,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+  function renderCurrentLine(idx) {
+    lyricsContainer.innerHTML = "";
+    if (idx >= 0) {
+      const span = document.createElement("span");
+      span.className = "lyric-current";
+      span.textContent = syncedLyrics[idx].text;
+      lyricsContainer.appendChild(span);
+    }
+  }
+
   function tickLyrics() {
     if (!syncedLyrics.length || spotifyStartMs == null) return;
     const elapsedSec = (Date.now() - spotifyStartMs) / 1000;
@@ -213,13 +221,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (idx !== lastActiveIdx) {
       lastActiveIdx = idx;
-      lyricsContainer.innerHTML = "";
-      if (idx >= 0) {
-        const span = document.createElement("span");
-        span.className = "lyric-current";
-        span.textContent = syncedLyrics[idx].text;
-        lyricsContainer.appendChild(span);
-      }
+      renderCurrentLine(idx);
+      if (!overlay.hidden) renderOverlayLyrics(idx);
     }
     lyricsRafId = requestAnimationFrame(tickLyrics);
   }
@@ -244,24 +247,186 @@ document.addEventListener("DOMContentLoaded", () => {
     lyricsContainer.innerHTML = "";
     lyricsStatus.textContent = "";
     lyricsSection.hidden = true;
+    closeOverlay();
   }
 
-  // =========================================
-  //  APPLY PRESENCE DATA (shared by WS + REST)
-  // =========================================
+  // lyrics overlay
+  function setPlayable(on) {
+    rpcSpotifyBlock.classList.toggle("is-playing", on);
+    spExpand.hidden = !on;
+    if (on) {
+      rpcSpotifyBlock.setAttribute("role", "button");
+      rpcSpotifyBlock.setAttribute("tabindex", "0");
+      rpcSpotifyBlock.setAttribute("aria-haspopup", "dialog");
+    } else {
+      rpcSpotifyBlock.removeAttribute("role");
+      rpcSpotifyBlock.removeAttribute("tabindex");
+      rpcSpotifyBlock.removeAttribute("aria-haspopup");
+    }
+  }
+
+  let closeTimer = null;
+
+  function openOverlay() {
+    // clicking while closing = cancel close
+    if (overlay.classList.contains("closing")) {
+      clearTimeout(closeTimer);
+      overlay.classList.remove("closing");
+      return;
+    }
+    if (!overlay.hidden || !currentTrack.song) return;
+    clearTimeout(closeTimer);
+    overlay.hidden = false;
+    document.body.classList.add("overlay-open");
+    // block the page behind
+    if (contentEl) contentEl.inert = true;
+    updateOverlayTrack();
+    renderOverlayLyrics(lastActiveIdx);
+    ovClose.focus();
+  }
+
+  function closeOverlay() {
+    if (overlay.hidden || overlay.classList.contains("closing")) return;
+    const hadFocus = overlay.contains(document.activeElement);
+
+    const finish = () => {
+      clearTimeout(closeTimer);
+      overlay.classList.remove("closing");
+      overlay.hidden = true;
+      document.body.classList.remove("overlay-open");
+      if (contentEl) contentEl.inert = false;
+      // restore focus
+      if (hadFocus && rpcSpotifyBlock.hasAttribute("tabindex")) {
+        rpcSpotifyBlock.focus();
+      }
+    };
+
+    // no motion = instant close
+    if (document.documentElement.matches(".reduced-motion, .motion-off")) {
+      finish();
+      return;
+    }
+
+    overlay.classList.add("closing");
+    const onEnd = (e) => {
+      if (e.target !== overlay || e.animationName !== "ov-out") return;
+      overlay.removeEventListener("animationend", onEnd);
+      finish();
+    };
+    overlay.addEventListener("animationend", onEnd);
+    // fallback
+    closeTimer = setTimeout(() => {
+      overlay.removeEventListener("animationend", onEnd);
+      finish();
+    }, 450);
+  }
+
+  function updateOverlayTrack() {
+    setText(ovTitle, currentTrack.song || "—");
+    setText(ovArtist, currentTrack.artist || "—");
+    if (currentTrack.cover) {
+      const coverChanged = ovCover.getAttribute("src") !== currentTrack.cover;
+      ovCover.src = currentTrack.cover;
+      ovBgArt.src = currentTrack.cover;
+      if (coverChanged) restartAnim(ovCover, "swap");
+    }
+  }
+
+  // restart css animation (reflow trick)
+  function restartAnim(el, cls) {
+    cls = cls || "tick";
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
+
+  // build lyric lines once per track
+  function buildOverlayLyrics() {
+    ovLyricList.textContent = "";
+    lyricEls = [];
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < syncedLyrics.length; i++) {
+      const el = document.createElement("div");
+      el.className = "ov-line future";
+      el.textContent = syncedLyrics[i].text;
+      frag.appendChild(el);
+      lyricEls.push(el);
+    }
+    ovLyricList.appendChild(frag);
+  }
+
+  function renderOverlayLyrics(idx) {
+    if (overlay.hidden) return;
+
+    // no lyrics: show message
+    if (!syncedLyrics.length) {
+      ovLyricList.textContent = "";
+      lyricEls = [];
+      builtLyricsRef = null;
+      const msg = document.createElement("div");
+      msg.className = "ov-line future";
+      msg.textContent = lyricsStatus.textContent || "No synced lyrics for this track";
+      ovLyricList.appendChild(msg);
+
+      const msgOffset = Math.round(ovLyrics.clientHeight / 2 - (msg.offsetTop + msg.offsetHeight / 2));
+      ovLyricList.style.transition = "none";
+      ovLyricList.style.transform = `translateY(${msgOffset}px)`;
+
+      ovBgPrev.textContent = "";
+      ovBgCur.textContent = currentTrack.song || "";
+      ovBgNext.textContent = currentTrack.artist || "";
+      restartAnim(ovBgLyrics);
+      return;
+    }
+
+    // new track = rebuild
+    let instant = false;
+    if (builtLyricsRef !== syncedLyrics) {
+      buildOverlayLyrics();
+      builtLyricsRef = syncedLyrics;
+      instant = true;
+    }
+
+    for (let i = 0; i < lyricEls.length; i++) {
+      const cls = i < idx ? "ov-line past" : i === idx ? "ov-line current" : "ov-line future";
+      if (lyricEls[i].className !== cls) lyricEls[i].className = cls;
+    }
+
+    // center active line
+    const centerIdx = idx >= 0 && idx < lyricEls.length ? idx : 0;
+    const el = lyricEls[centerIdx];
+    if (el) {
+      const offset = Math.round(ovLyrics.clientHeight / 2 - (el.offsetTop + el.offsetHeight / 2));
+      if (instant) {
+        ovLyricList.style.transition = "none";
+        ovLyricList.style.transform = `translateY(${offset}px)`;
+        void ovLyricList.offsetHeight;
+        ovLyricList.style.transition = "";
+      } else {
+        ovLyricList.style.transform = `translateY(${offset}px)`;
+      }
+    }
+
+    ovBgPrev.textContent = idx > 0 ? syncedLyrics[idx - 1].text : "";
+    ovBgCur.textContent = idx >= 0 ? syncedLyrics[idx].text : syncedLyrics[0].text;
+    ovBgNext.textContent = idx + 1 < syncedLyrics.length ? syncedLyrics[idx + 1].text : "";
+    restartAnim(ovBgLyrics);
+  }
+
+  // apply presence (ws + rest)
   function applyPresence(data) {
     if (!data) return;
 
     const user = data.discord_user;
-    nameEl.textContent = user?.global_name || user?.username || "—";
+    setText(nameEl, user?.global_name || user?.username || "—");
     avatar.src = discordAvatarUrl(user);
 
-    // Status
+    // status
     const st = data.discord_status || "offline";
     dot.style.background = statusColor[st] || statusColor.offline;
     statusText.textContent = statusLabel(st);
 
-    // Hide game/spotify blocks when idle or offline
+    // hide blocks when offline
     const showBlocks = (st === "online" || st === "dnd");
     rpcGameBlock.hidden = !showBlocks;
     rpcSep.hidden = !showBlocks;
@@ -270,21 +435,19 @@ document.addEventListener("DOMContentLoaded", () => {
       clearLyrics();
     }
 
-    // ---- Spotify ----
+    // spotify
     if (showBlocks && data.spotify?.track_id) {
-      spTrack.textContent = data.spotify.song || "—";
-      spArtist.textContent = data.spotify.artist || "—";
-      currentSpotifyUrl = spotifyTrackUrl(data.spotify.track_id);
-      setCopyUi({ enabled: !!currentSpotifyUrl, status: "" });
-      if (data.spotify.album_art_url) {
-        spCover.src = data.spotify.album_art_url;
-        spCover.hidden = false;
-      } else {
-        spCover.hidden = true;
-      }
-      spEqualizer.hidden = false;
-
-      // ---- Lyrics sync ----
+      setText(spTrack, data.spotify.song || "—");
+      setText(spArtist, data.spotify.artist || "—");
+      setAlbumArt(data.spotify.album_art_url);
+      currentTrack = {
+        song: data.spotify.song || "",
+        artist: data.spotify.artist || "",
+        cover: data.spotify.album_art_url || null
+      };
+      setPlayable(true);
+      if (!overlay.hidden) updateOverlayTrack();
+      // lyrics sync
       spotifyStartMs = data.spotify.timestamps?.start ?? null;
       if (spotifyStartMs == null) {
         clearLyrics();
@@ -299,7 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
           data.spotify.song || "",
           data.spotify.artist || ""
         ).then(lyrics => {
-          // Discard if song changed while we were fetching
+          // song changed mid-fetch
           if (fetchTrackId !== lastLyricsTrackId) return;
           syncedLyrics = lyrics;
           if (lyrics.length) {
@@ -309,23 +472,23 @@ document.addEventListener("DOMContentLoaded", () => {
           } else {
             lyricsStatus.textContent = "No synced lyrics available for this track";
           }
+          if (!overlay.hidden) renderOverlayLyrics(-1);
         });
       }
     } else {
-      spTrack.textContent = "Not listening to anything right now";
-      spArtist.textContent = "—";
-      spCover.hidden = true;
-      currentSpotifyUrl = null;
-      setCopyUi({ enabled: false, status: "Not listening" });
-      spEqualizer.hidden = true;
+      setText(spTrack, "Not listening to anything right now");
+      setText(spArtist, "—");
+      setAlbumArt(null);
+      currentTrack = { song: "", artist: "", cover: null };
+      setPlayable(false);
       clearLyrics();
     }
 
-    // Game + Details + Icon
+    // game
     const game = pickGame(data.activities || []);
     if (game) {
-      gameEl.textContent = game.name || "—";
-      detailsEl.textContent = [game.details, game.state].filter(Boolean).join(" • ") || "—";
+      setText(gameEl, game.name || "—");
+      setText(detailsEl, [game.details, game.state].filter(Boolean).join(" • ") || "—");
       const iconUrl = activityAssetUrl(game, "large") || activityAssetUrl(game, "small");
       if (iconUrl) {
         gameIcon.src = iconUrl;
@@ -334,8 +497,8 @@ document.addEventListener("DOMContentLoaded", () => {
         gameIcon.hidden = true;
       }
     } else {
-      gameEl.textContent = "Not playing any game right now";
-      detailsEl.textContent = "—";
+      setText(gameEl, "Not playing any game right now");
+      setText(detailsEl, "—");
       gameIcon.hidden = true;
     }
   }
@@ -343,30 +506,28 @@ document.addEventListener("DOMContentLoaded", () => {
   function applyError() {
     statusText.textContent = "Error";
     dot.style.background = statusColor.offline;
-    detailsEl.textContent = "Couldn't load presence";
-    gameEl.textContent = "Not playing any game right now";
+    setText(detailsEl, "Couldn't load presence");
+    setText(gameEl, "Not playing any game right now");
     gameIcon.hidden = true;
-    spTrack.textContent = "Not listening to anything right now";
-    spArtist.textContent = "—";
-    spCover.hidden = true;
-    spEqualizer.hidden = true;
-    currentSpotifyUrl = null;
-    setCopyUi({ enabled: false, status: "Error" });
+    setText(spTrack, "Not listening to anything right now");
+    setText(spArtist, "—");
+    setAlbumArt(null);
+    currentTrack = { song: "", artist: "", cover: null };
+    setPlayable(false);
     clearLyrics();
   }
 
-  // =========================================
-  //  WEBSOCKET (primary — live updates)
-  // =========================================
+
+  // websocket
   let ws = null;
   let heartbeatInterval = null;
   let wsConnected = false;
   let reconnectTimeout = null;
-  let reconnectDelay = 1000; // start at 1s, increases on failure
+  let reconnectDelay = 1000; // backoff start
 
   function connectWebSocket() {
     if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) {
-      return; // already connected or connecting
+      return; // already connecting
     }
 
     try {
@@ -379,7 +540,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     ws.onopen = () => {
       console.log("[Lanyard WS] Connected");
-      reconnectDelay = 1000; // reset backoff on successful connection
+      reconnectDelay = 1000; // reset backoff
     };
 
     ws.onmessage = (event) => {
@@ -391,20 +552,20 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       switch (msg.op) {
-        // op 1: Hello — contains heartbeat_interval
+        // hello: heartbeat interval
         case 1:
           startHeartbeat(msg.d.heartbeat_interval);
-          // Send op 2: Initialize — subscribe to our user
+          // subscribe to user
           ws.send(JSON.stringify({
             op: 2,
             d: { subscribe_to_id: USER_ID }
           }));
           break;
 
-        // op 0: Event — INIT_STATE or PRESENCE_UPDATE
+        // presence events
         case 0:
           wsConnected = true;
-          stopRESTFallback(); // WS is live, no need for REST polling
+          stopRESTFallback(); // ws live
           if (msg.t === "INIT_STATE" || msg.t === "PRESENCE_UPDATE") {
             applyPresence(msg.d);
           }
@@ -417,13 +578,13 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     ws.onclose = (e) => {
-      if (ws !== e.target) return; // Guard against stale socket races
+      if (ws !== e.target) return; // stale socket
       console.log(`[Lanyard WS] Closed (code ${e.code}). Reconnecting in ${reconnectDelay}ms...`);
       wsConnected = false;
       stopHeartbeat();
-      // Start REST polling while we reconnect
+      // poll while reconnecting
       startRESTFallback();
-      // Schedule reconnect with exponential backoff (max 30s)
+      // reconnect w/ backoff
       reconnectTimeout = setTimeout(() => {
         reconnectDelay = Math.min(reconnectDelay * 2, 30000);
         connectWebSocket();
@@ -447,9 +608,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // =========================================
-  //  REST FALLBACK (used when WS is down)
-  // =========================================
+  // rest fallback
   let restPollId = null;
 
   async function restUpdate() {
@@ -480,19 +639,34 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // =========================================
-  //  INIT — try WebSocket first, REST as backup
-  // =========================================
-  // Do one immediate REST fetch so the card isn't empty while WS connects
+  // init
+  // first fetch so card isn't empty
   restUpdate();
   connectWebSocket();
 
-  // If tab becomes visible again, ensure connection is alive
+  // overlay controls
+  rpcSpotifyBlock.addEventListener("click", openOverlay);
+  rpcSpotifyBlock.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openOverlay();
+    }
+  });
+  ovClose.addEventListener("click", closeOverlay);
+  overlay.addEventListener("click", (e) => {
+    if (e.target.closest(".ov-content")) return;
+    closeOverlay();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !overlay.hidden) closeOverlay();
+  });
+
+  // tab visible: check connection
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
       if (!wsConnected) {
         restUpdate();
-        // Clear any pending reconnect and try immediately
+        // reconnect now
         if (reconnectTimeout) clearTimeout(reconnectTimeout);
         reconnectDelay = 1000;
         connectWebSocket();

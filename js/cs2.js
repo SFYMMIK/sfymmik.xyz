@@ -3,7 +3,7 @@
 const STEAM_64_ID = "76561199104390936"; // JustSfymmiK's Steam ID
 const LEETIFY_API_URL = `https://api-public.cs-prod.leetify.com/v3/profile?id=${STEAM_64_ID}`;
 
-// Wingman Rank Names matching CS2 internal IDs (1-18)
+// wingman rank names
 const CS_RANK_NAMES = [
   "Unranked",
   "Silver I",
@@ -36,52 +36,70 @@ function getPremierColor(rating) {
   return "grey";
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   const pfpEl = document.getElementById("game-pfp");
   const nicknameEl = document.getElementById("cs2-nickname");
   const premierEl = document.getElementById("cs2-premier");
   const wingmanNameEl = document.getElementById("cs2-wingman-name");
   const wingmanImgEl = document.getElementById("cs2-wingman-img");
+  const cardItem = document.getElementById("game-cs2");
 
-  try {
-    const response = await fetch(LEETIFY_API_URL);
-    if (!response.ok) throw new Error("Failed to fetch Leetify profile");
-    
-    const data = await response.json();
+  if (!pfpEl || !nicknameEl || !premierEl || !wingmanNameEl || !wingmanImgEl || !cardItem) return;
 
-    // 0. Username
-    if (nicknameEl && data.name) {
-      nicknameEl.textContent = data.name;
-    }
-    
-    // 1. Profile Picture
-    pfpEl.src = "https://id.i-prod.leetify.com/images/v1/avatar/b10a3451-c496-4a8a-8264-5966d6153a9e";
+  let initialized = false;
 
-    // 2. Premier Rating
-    const premierRating = data.ranks?.premier || 0;
-    if (premierRating > 0) {
-      premierEl.textContent = premierRating.toLocaleString();
-      premierEl.className = "cs2-premier-rating"; 
-      premierEl.classList.add(`cs2-color-${getPremierColor(premierRating)}`);
-    } else {
-      premierEl.textContent = "Unranked";
-    }
+  // fetch stats only when the card opens
+  async function loadStats() {
+    if (initialized) return;
+    initialized = true;
 
-    // 3. Wingman Rank
-    const wingmanRankId = data.ranks?.wingman || 0;
-    if (wingmanRankId > 0 && wingmanRankId <= 18) {
-      wingmanNameEl.textContent = "";
-      wingmanImgEl.src = `https://csstats.gg/images/ranks/${wingmanRankId}.png`;
-      wingmanImgEl.hidden = false;
-    } else {
-      wingmanNameEl.textContent = "Unranked";
+    try {
+      const response = await fetch(LEETIFY_API_URL);
+      if (!response.ok) throw new Error("Failed to fetch Leetify profile");
+
+      const data = await response.json();
+
+      // username
+      if (data.name) {
+        nicknameEl.textContent = data.name;
+      }
+
+      // profile pic
+      if (data.id) {
+        pfpEl.onerror = () => { pfpEl.hidden = true; };
+        pfpEl.src = `https://id.i-prod.leetify.com/images/v1/avatar/${data.id}`;
+        pfpEl.hidden = false;
+      }
+
+      // premier
+      const premierRating = data.ranks?.premier || 0;
+      if (premierRating > 0) {
+        premierEl.textContent = premierRating.toLocaleString();
+        premierEl.className = "cs2-premier-rating";
+        premierEl.classList.add(`cs2-color-${getPremierColor(premierRating)}`);
+      } else {
+        premierEl.textContent = "Unranked";
+      }
+
+      // wingman
+      const wingmanRankId = data.ranks?.wingman || 0;
+      if (wingmanRankId > 0 && wingmanRankId <= 18) {
+        wingmanNameEl.textContent = "";
+        wingmanImgEl.src = `https://csstats.gg/images/ranks/${wingmanRankId}.png`;
+        wingmanImgEl.hidden = false;
+      } else {
+        wingmanNameEl.textContent = "Unranked";
+        wingmanImgEl.hidden = true;
+      }
+    } catch (error) {
+      console.error("CS2 Stats Error:", error);
+      premierEl.textContent = "Err: " + error.message;
+      wingmanNameEl.textContent = "Error loading";
       wingmanImgEl.hidden = true;
     }
-
-  } catch (error) {
-    console.error("CS2 Stats Error:", error);
-    premierEl.textContent = "Err: " + error.message;
-    wingmanNameEl.textContent = "Error loading";
-    wingmanImgEl.hidden = true;
   }
+
+  document.addEventListener("gamecard:open", (e) => {
+    if (e.target === cardItem) loadStats();
+  });
 });
