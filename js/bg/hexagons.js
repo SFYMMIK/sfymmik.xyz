@@ -17,14 +17,12 @@
       this.ctx = canvas.getContext("2d");
       this.mouse = { x: -1000, y: -1000 };
       this.t = 0;
-      this._loop = this._loop.bind(this);
 
       this._resize();
       this._bind();
 
-      this.interval = 1000 / CFG.fps;
-      this.lastFrame = 0;
-      this._loop(0);
+      this.loop = new window.BgLoop(() => this._draw(), CFG.fps);
+      this.loop.start();
     }
 
     _resize() {
@@ -62,6 +60,24 @@
       // glow buckets
       this.buckets = [];
       for (let l = 0; l < CFG.levels; l++) this.buckets.push([]);
+
+      // cache the grid; it only changes on resize
+      if (typeof Path2D !== "undefined") {
+        const grid = new Path2D();
+        const v = this.verts;
+        for (let i = 0; i < this.cells.length; i += 2) {
+          const x = this.cells[i];
+          const y = this.cells[i + 1];
+          grid.moveTo(x + v[0], y + v[1]);
+          for (let k = 1; k < 6; k++) {
+            grid.lineTo(x + v[k * 2], y + v[k * 2 + 1]);
+          }
+          grid.closePath();
+        }
+        this.gridPath = grid;
+      } else {
+        this.gridPath = null;
+      }
     }
 
     _bind() {
@@ -103,19 +119,24 @@
       const buckets = this.buckets;
       for (let l = 0; l < buckets.length; l++) buckets[l].length = 0;
 
-      // base grid (one path)
-      ctx.beginPath();
-      for (let i = 0; i < cells.length; i += 2) {
-        const x = cells[i];
-        const y = cells[i + 1];
-        const v = this.verts;
-        ctx.moveTo(x + v[0], y + v[1]);
-        for (let k = 1; k < 6; k++) ctx.lineTo(x + v[k * 2], y + v[k * 2 + 1]);
-        ctx.closePath();
-      }
+      // base grid
       ctx.strokeStyle = CFG.gridColor;
       ctx.lineWidth = 1;
-      ctx.stroke();
+      if (this.gridPath) {
+        ctx.stroke(this.gridPath);
+      } else {
+        // old browsers without Path2D
+        ctx.beginPath();
+        for (let i = 0; i < cells.length; i += 2) {
+          const x = cells[i];
+          const y = cells[i + 1];
+          const v = this.verts;
+          ctx.moveTo(x + v[0], y + v[1]);
+          for (let k = 1; k < 6; k++) ctx.lineTo(x + v[k * 2], y + v[k * 2 + 1]);
+          ctx.closePath();
+        }
+        ctx.stroke();
+      }
 
       for (let i = 0; i < cells.length; i += 2) {
         const x = cells[i];
@@ -158,16 +179,6 @@
         ctx.strokeStyle = `rgba(160, 205, 245, ${0.18 * strength})`;
         ctx.stroke();
       }
-    }
-
-    _loop(timestamp) {
-      requestAnimationFrame(this._loop);
-      // pause on reduced motion
-      if (document.documentElement.matches(".reduced-motion, .motion-off")) return;
-      const delta = timestamp - this.lastFrame;
-      if (delta < this.interval) return;
-      this.lastFrame = timestamp - (delta % this.interval);
-      this._draw();
     }
   }
 

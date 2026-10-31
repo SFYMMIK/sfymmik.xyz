@@ -20,15 +20,13 @@
       this.cvs = canvas;
       this.ctx = canvas.getContext("2d");
       this.zOff = 0;
-      this._loop = this._loop.bind(this);
 
       this._resize();
       this._initParticles();
       this._bind();
 
-      this.interval = 1000 / CFG.fps;
-      this.lastFrame = 0;
-      this._loop(0);
+      this.loop = new window.BgLoop(() => this._draw(), CFG.fps);
+      this.loop.start();
     }
 
     _resize() {
@@ -44,14 +42,15 @@
       const count = Math.min(CFG.maxCount, Math.floor((this.w * this.h) / 900));
       this.particles = [];
       for (let i = 0; i < count; i++) {
+        const speed = Math.random() * CFG.baseSpeed + 0.5;
         this.particles.push({
           x: Math.random() * this.w,
           y: Math.random() * this.h,
-          speed: Math.random() * CFG.baseSpeed + 0.5,
+          speed,
           life: Math.random() * 100,
           maxLife: Math.random() * 200 + 50,
           accent: Math.random() < CFG.accentChance,
-          bright: false
+          bright: speed > CFG.baseSpeed * 0.8
         });
       }
     }
@@ -92,7 +91,6 @@
         p.x += Math.cos(angle) * p.speed;
         p.y += Math.sin(angle) * p.speed;
         p.life++;
-        p.bright = p.speed > CFG.baseSpeed * 0.8;
 
         if (p.x < 0 || p.x > this.w || p.y < 0 || p.y > this.h || p.life > p.maxLife) {
           p.x = Math.random() * this.w;
@@ -127,16 +125,6 @@
       }
 
       ctx.globalAlpha = 1;
-    }
-
-    _loop(timestamp) {
-      requestAnimationFrame(this._loop);
-      // pause on reduced motion
-      if (document.documentElement.matches(".reduced-motion, .motion-off")) return;
-      const delta = timestamp - this.lastFrame;
-      if (delta < this.interval) return;
-      this.lastFrame = timestamp - (delta % this.interval);
-      this._draw();
     }
   }
 

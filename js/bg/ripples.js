@@ -20,14 +20,12 @@
       this.ripples = [];
       this.mouse = { x: -1000, y: -1000 };
       this.ambientTimer = 60;
-      this._loop = this._loop.bind(this);
 
       this._resize();
       this._bind();
 
-      this.interval = 1000 / CFG.fps;
-      this.lastFrame = 0;
-      this._loop(0);
+      this.loop = new window.BgLoop(() => this._draw(), CFG.fps);
+      this.loop.start();
     }
 
     _resize() {
@@ -107,16 +105,6 @@
         ctx.stroke();
       }
       ctx.globalAlpha = 1;
-    }
-
-    _loop(timestamp) {
-      requestAnimationFrame(this._loop);
-      // pause on reduced motion
-      if (document.documentElement.matches(".reduced-motion, .motion-off")) return;
-      const delta = timestamp - this.lastFrame;
-      if (delta < this.interval) return;
-      this.lastFrame = timestamp - (delta % this.interval);
-      this._draw();
     }
   }
 

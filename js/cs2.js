@@ -53,6 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (initialized) return;
     initialized = true;
 
+    // retry when the card is reopened
+    premierEl.textContent = "Loading...";
+    wingmanNameEl.textContent = "Loading...";
+    wingmanImgEl.hidden = true;
+
     try {
       const response = await fetch(LEETIFY_API_URL);
       if (!response.ok) throw new Error("Failed to fetch Leetify profile");
@@ -92,9 +97,10 @@ document.addEventListener("DOMContentLoaded", () => {
         wingmanImgEl.hidden = true;
       }
     } catch (error) {
+      initialized = false;
       console.error("CS2 Stats Error:", error);
-      premierEl.textContent = "Err: " + error.message;
-      wingmanNameEl.textContent = "Error loading";
+      premierEl.textContent = "Couldn't load stats";
+      wingmanNameEl.textContent = "Close and reopen to retry";
       wingmanImgEl.hidden = true;
     }
   }

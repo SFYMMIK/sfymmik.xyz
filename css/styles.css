@@ -54,16 +54,20 @@ html.motion-off #particles {
 
 html.motion-off *,
 html.motion-off *::before,
-html.motion-off *::after {
+html.motion-off *::after,
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after {
   animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
 }
-html.motion-off body {
+html.motion-off body,
+html.reduced-motion body {
   opacity: 1;
-}
-html.reduced-motion .motion-toggle {
-  display: none;
 }
 
 /* background canvas */
@@ -87,7 +91,7 @@ html.reduced-motion .motion-toggle {
 }
 
 /* section spacing */
-#content > section {
+#content main > section {
   margin: 0 0 34px;
 }
 
@@ -528,7 +532,8 @@ code {
   color: #888;
   margin: 0;
   text-align: right;
-  white-space: nowrap;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
 }
 #lyricsStatus:empty {
   display: none;
@@ -629,24 +634,32 @@ footer p {
   .friends-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .lyrics-inline {
+    max-width: 45vw;
+  }
 }
 
-/* reduced motion */
+/* reduced motion (unless animations are forced back on) */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  html:not(.force-motion) *,
+  html:not(.force-motion) *::before,
+  html:not(.force-motion) *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
   }
-  body {
+  html:not(.force-motion) body {
     opacity: 1;
   }
-  #particles {
+  html:not(.force-motion) #particles {
     display: none !important;
   }
 }
 
-/* cs2 hover card */
+/* game cards */
 .game-list-item {
   position: relative;
   width: fit-content;
@@ -664,20 +677,6 @@ footer p {
   border-radius: 8px;
   overflow: hidden;
   background: rgba(0, 0, 0, 0.3);
-}
-
-.game-card--osu {
-  width: 350px;
-}
-
-.game-card--osu .game-card-body {
-  padding: 0;
-}
-
-.osu-sig {
-  width: 100%;
-  border-radius: 8px;
-  display: block;
 }
 
 .game-trigger {
@@ -726,18 +725,18 @@ footer p {
 }
 
 .game-card {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 100;
+  /* keep cards in flow so they don't cover the next game */
+  position: static;
   width: 375px;
+  max-width: 100%;
   background: rgba(30, 30, 35, 0.6);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  
-  margin-top: 8px;
+
+  margin-top: 0;
+  margin-bottom: 0;
   opacity: 0;
   max-height: 0;
   overflow: hidden;
@@ -752,7 +751,9 @@ footer p {
 
 .game-list-item.active .game-card {
   opacity: 1;
-  max-height: 600px; /* fits all cards */
+  max-height: 800px;
+  margin-top: 8px;
+  margin-bottom: 16px;
   padding: 12px;
   border-width: 1px;
   visibility: visible;
@@ -849,11 +850,11 @@ footer p {
     width: 100%;
   }
   .game-card {
-    position: static;
     width: 100%;
-    margin-top: 12px;
-    margin-bottom: 16px;
     box-sizing: border-box;
+  }
+  .game-list-item.active .game-card {
+    margin-top: 12px;
   }
 }
 

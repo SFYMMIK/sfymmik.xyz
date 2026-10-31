@@ -16,15 +16,15 @@
       this.cvs = canvas;
       this.ctx = canvas.getContext("2d");
       this.t = 0;
-      this._loop = this._loop.bind(this);
+      this.levels = [];
+      for (let l = 0; l < CFG.lineLevels; l++) this.levels.push([]);
 
       this._resize();
       this._initParticles();
       this._bind();
 
-      this.interval = 1000 / CFG.fps;
-      this.lastFrame = 0;
-      this._loop(0);
+      this.loop = new window.BgLoop(() => this._draw(), CFG.fps);
+      this.loop.start();
     }
 
     _resize() {
@@ -72,8 +72,8 @@
       const maxD2 = maxD * maxD;
 
       // links batched per opacity level
-      const levels = [];
-      for (let l = 0; l < CFG.lineLevels; l++) levels.push([]);
+      const levels = this.levels;
+      for (let l = 0; l < levels.length; l++) levels[l].length = 0;
 
       for (let i = 0; i < pts.length; i++) {
         const p = pts[i];
@@ -121,16 +121,6 @@
       }
       ctx.fillStyle = CFG.dotColor;
       ctx.fill();
-    }
-
-    _loop(timestamp) {
-      requestAnimationFrame(this._loop);
-      // pause on reduced motion
-      if (document.documentElement.matches(".reduced-motion, .motion-off")) return;
-      const delta = timestamp - this.lastFrame;
-      if (delta < this.interval) return;
-      this.lastFrame = timestamp - (delta % this.interval);
-      this._draw();
     }
   }
 

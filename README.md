@@ -3,6 +3,17 @@
 # Main URL (Cloudflare)
 - https://sfymmik.xyz/
 
+# Lyrics
+
+LRCLIB is the main lyrics source. `api.lrcmux.dev` is the fallback when LRCLIB
+is down, rate-limited, or missing a track. Keep both in the CSP `connect-src`.
+
+# Motion
+
+Reduced motion is respected by default. Backgrounds also pause while the tab is
+hidden or the lyrics overlay is open. The footer toggle can force animations
+back on for this site.
+
 # Backup URL's
 
 ## Cloudflare

@@ -8,7 +8,7 @@
     script-src 'self' https://cdn.jsdelivr.net;
     style-src 'self' 'unsafe-inline';
     img-src 'self' https: data:;
-    connect-src 'self' https://api.lanyard.rest wss://api.lanyard.rest https://lrclib.net https://api-public.cs-prod.leetify.com https://api.minetools.eu;
+    connect-src 'self' https://api.lanyard.rest wss://api.lanyard.rest https://lrclib.net https://api.lrcmux.dev https://api-public.cs-prod.leetify.com https://api.minetools.eu;
   ">
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>SfymmiK's Webpage</title>
@@ -25,6 +25,7 @@
   <meta property="og:image" content="https://sfymmik.xyz/images/pfp-512.png">
   <link rel="canonical" href="https://sfymmik.xyz/">
   <link rel="preconnect" href="https://lrclib.net" crossorigin>
+  <link rel="preconnect" href="https://api.lrcmux.dev" crossorigin>
   <script src="js/boot.js"></script>
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="icon" type="image/png" sizes="256x256" href="images/pfp-256.png">
@@ -58,6 +59,7 @@
       </div>
     </header>
 
+    <main>
     <!-- quote -->
     <blockquote class="daily-quote">
       <span id="quoteText">Loading quote...</span>
@@ -83,7 +85,7 @@
       <div class="rpc-card" id="rpc">
         <div class="rpc-top">
           <div class="rpc-profile">
-            <img class="rpc-avatar" id="rpcAvatar" alt="Avatar">
+            <img class="rpc-avatar" id="rpcAvatar" src="images/pfp-256.png" alt="Avatar">
             <div class="rpc-who">
               <div class="rpc-title">(Discord) Activity</div>
               <div class="rpc-name" id="rpcName">—</div>
@@ -166,14 +168,6 @@
             </div>
           </div>
         </li>
-        <li class="game-list-item" id="game-osu">
-          <button class="game-trigger" type="button" aria-expanded="false" aria-controls="osu-card">Osu! (Lazer)</button>
-          <div class="game-card game-card--osu" id="osu-card">
-            <div class="game-card-body">
-              <img src="https://lemmmy.pw/osusig/sig.php?colour=hexff66aa&uname=SFYM&pp=1&countryrank=1&flagshadow=1&flagstroke=1&darktriangles=1&onlineindicator=undefined&xpbar=1&xpbarhex" alt="Osu Signature" loading="lazy" class="osu-sig">
-            </div>
-          </div>
-        </li>
       </ul>
     </section>
 
@@ -226,10 +220,11 @@
       <h2>linkback</h2>
       <p>If you like my work, you can mention my website via an 88×31 button:</p>
       <div class="code-tabs">
-        <button class="code-tab active" id="tabBmpr" type="button">BMPR (recommended)</button>
-        <button class="code-tab" id="tabImg" type="button">Normal &lt;img&gt;</button>
+        <button class="code-tab active" id="tabBmpr" type="button" aria-pressed="true" aria-controls="codeBmpr">BMPR (recommended)</button>
+        <button class="code-tab" id="tabImg" type="button" aria-pressed="false" aria-controls="codeImg">Normal &lt;img&gt;</button>
       </div>
-      <pre id="codeBmpr"><code>&lt;a href="https://sfymmik.xyz/"&gt;
+      <pre id="codeBmpr"><code>&lt;script src="https://sfymmik.xyz/js/BMPR/bmpr.js" defer&gt;&lt;/script&gt;
+&lt;a href="https://sfymmik.xyz/"&gt;
   &lt;bmp-img
     src="https://sfymmik.xyz/images/button.bmp"
     alt="SfymmiK 88x31 button"
@@ -246,8 +241,9 @@
     width="88"
     height="31"&gt;
 &lt;/a&gt;</code></pre>
-      <p><strong>Note:</strong> BMP is natively supported by modern browsers but may break on Safari or older browsers. Services like Cloudflare can send the wrong MIME type or try to "optimize" the image. Using <a href="https://git.sfymmik.xyz/Lings/BMPR">BMPR</a> (which I actively maintain) avoids these issues entirely.</p>
+      <p><strong>Note:</strong> BMP is natively supported by modern browsers but may break on Safari or older browsers. Services like Cloudflare can send the wrong MIME type or try to "optimize" the image. Using <a href="https://git.sfymmik.xyz/Lings/BMPR">BMPR</a> (which I actively maintain) avoids these issues entirely. Just include the script tag shown in the first snippet once per page.</p>
     </section>
+    </main>
 
     <!-- footer -->
     <footer>

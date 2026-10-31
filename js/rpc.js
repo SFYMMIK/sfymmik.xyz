@@ -124,79 +124,300 @@ document.addEventListener("DOMContentLoaded", () => {
   let lyricsRafId = null;
   let lastActiveIdx = -1;
   const lyricsCache = new Map();
-  let currentTrack = { song: "", artist: "", cover: null };
+  let currentTrack = { id: "", song: "", artist: "", album: "", cover: null, duration: 0 };
   let lyricEls = [];
   let builtLyricsRef = null;
+  let lyricsRequestSeq = 0;
+  let lyricsRetryTimer = null;
+  let lyricsRetryCount = 0;
+  let lyricsState = "idle";
+
+  const LYRICS_TIMEOUT_MS = 6000;
+  const LYRICS_CACHE_MAX = 60;
+  const LRCLIB_CLIENT = "SfymmiK-Website/1.0 (+https://sfymmik.xyz)";
+  let lrclibCooldownUntil = 0;
+
+  function fetchWithTimeout(url, options = {}) {
+    const controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timeout = options.timeout || LYRICS_TIMEOUT_MS;
+    const timer = controller ? setTimeout(() => controller.abort(), timeout) : null;
+    const fetchOptions = { cache: "no-store" };
+    if (options.headers) fetchOptions.headers = options.headers;
+    if (controller) fetchOptions.signal = controller.signal;
+
+    return fetch(url, fetchOptions).finally(() => {
+      if (timer) clearTimeout(timer);
+    });
+  }
 
   function parseLRC(lrc) {
-    if (!lrc) return [];
+    if (typeof lrc !== "string" || !lrc) return [];
     const parsed = [];
-    const re = /\[(\d{2}):(\d{2})\.(\d{2,3})\]\s*(.*)/;
-    for (const raw of lrc.split("\n")) {
-      const m = raw.match(re);
-      if (m) {
-        const t = parseInt(m[1]) * 60 + parseInt(m[2]) + parseInt(m[3].padEnd(3, "0")) / 1000;
-        const text = m[4].trim();
-        if (text) parsed.push({ time: t, text });
+    const timeTag = /\[(\d{1,3}):([0-5]?\d)(?:[.:](\d{1,3}))?\]/g;
+    const offsetMatch = lrc.match(/\[offset:\s*([+-]?\d+)\s*\]/i);
+    const offset = offsetMatch ? parseInt(offsetMatch[1], 10) / 1000 : 0;
+
+    for (const rawLine of lrc.replace(/^\uFEFF/, "").split(/\r?\n/)) {
+      // drop <mm:ss.xx> word tags
+      const line = rawLine.replace(/<[^>]*>/g, "");
+      const times = [];
+      timeTag.lastIndex = 0;
+      let match;
+      while ((match = timeTag.exec(line)) !== null) {
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+        const fraction = match[3]
+          ? parseInt(match[3].padEnd(3, "0").slice(0, 3), 10) / 1000
+          : 0;
+        const time = Math.max(0, minutes * 60 + seconds + fraction + offset);
+        if (Number.isFinite(time)) times.push(time);
+      }
+      if (!times.length) continue;
+      timeTag.lastIndex = 0;
+      const text = line.replace(timeTag, "").trim();
+      if (!text) continue;
+      for (const time of times) parsed.push({ time, text });
+    }
+
+    parsed.sort((a, b) => a.time - b.time);
+    return parsed;
+  }
+
+  function normalizeName(value) {
+    return String(value || "")
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/\[[^\]]*\]|\([^)]*\)/g, " ")
+      .replace(/\b(feat|ft|featuring|remastered|remaster|version|edit|live|mono|stereo)\b/g, " ")
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim();
+  }
+
+  function cleanQueries(song, artist) {
+    const primaryArtist = String(artist || "")
+      .split(/\s*(?:[,;]|\bfeat\.|\bft\.|\bfeaturing\b)\s*/i)[0]
+      .trim();
+    const cleanSong = String(song || "").replace(/\s*[\(\[].*$/g, "").trim();
+    return { cleanSong, primaryArtist };
+  }
+
+  function scoreMatch(candidate, song, artist, durationSec) {
+    const targetTitle = normalizeName(song);
+    const targetArtist = normalizeName(artist);
+    const title = normalizeName(candidate.trackName || candidate.name);
+    const candidateArtist = normalizeName(candidate.artistName);
+    let score = 0;
+    let identityMatch = false;
+
+    if (title && targetTitle) {
+      if (title === targetTitle) {
+        score += 60;
+        identityMatch = true;
+      } else if (title.includes(targetTitle) || targetTitle.includes(title)) {
+        score += 35;
+        identityMatch = true;
+      } else {
+        const words = targetTitle.split(" ").filter(w => w.length > 2);
+        const hits = words.filter(w => title.includes(w)).length;
+        if (hits) {
+          score += Math.min(20, hits * 6);
+          if (hits >= 2) identityMatch = true;
+        }
       }
     }
-    return parsed.sort((a, b) => a.time - b.time);
-  }
 
-  function safeFetch(url) {
-    return fetch(url).catch(() => null);
-  }
-
-  async function fetchSyncedLyrics(song, artist) {
-    const cacheKey = `${song}||${artist}`;
-    if (lyricsCache.has(cacheKey)) return lyricsCache.get(cacheKey);
-    try {
-      const primaryArtist = artist.split(/[,;]/)[0].trim();
-      const exactParams = new URLSearchParams({
-        track_name: song,
-        artist_name: primaryArtist
-      });
-      const cleanSong = song.replace(/\s*[\(\[].*$/g, "").trim();
-      const searchParams = new URLSearchParams({
-        q: `${cleanSong} ${primaryArtist}`
-      });
-
-      // first fetch to return lyrics wins
-      const result = await new Promise(resolve => {
-        let done = false;
-        let pending = 2;
-        function tryResolve(parsed) {
-          if (done) return;
-          if (parsed && parsed.length) { done = true; resolve(parsed); }
-          else if (--pending <= 0) resolve([]);
-        }
-
-        safeFetch(`https://lrclib.net/api/get?${exactParams}`)
-          .then(async res => {
-            if (res?.ok) {
-              const data = await res.json();
-              if (data.syncedLyrics) return tryResolve(parseLRC(data.syncedLyrics));
-            }
-            tryResolve(null);
-          }).catch(() => tryResolve(null));
-
-        safeFetch(`https://lrclib.net/api/search?${searchParams}`)
-          .then(async res => {
-            if (res?.ok) {
-              const results = await res.json();
-              const match = results.find(r => r.syncedLyrics);
-              if (match) return tryResolve(parseLRC(match.syncedLyrics));
-            }
-            tryResolve(null);
-          }).catch(() => tryResolve(null));
-      });
-
-      lyricsCache.set(cacheKey, result);
-      return result;
-    } catch (e) {
-      console.error("[Lyrics] fetch error:", e);
-      return [];
+    if (candidateArtist && targetArtist) {
+      if (candidateArtist === targetArtist) {
+        score += 35;
+        identityMatch = true;
+      } else if (candidateArtist.includes(targetArtist) || targetArtist.includes(candidateArtist)) {
+        score += 20;
+        identityMatch = true;
+      } else {
+        score -= 20;
+      }
     }
+
+    const candidateDuration = Number(candidate.duration);
+    if (durationSec > 0 && Number.isFinite(candidateDuration) && candidateDuration > 0) {
+      const diff = Math.abs(candidateDuration - durationSec);
+      if (diff <= 2) score += 50;
+      else if (diff <= 5) score += 25;
+      else if (diff <= 15) score += 5;
+      else if (diff > 30) score -= 20;
+    }
+
+    // duration alone isn't enough
+    return identityMatch ? score : -Infinity;
+  }
+
+  function pickBestMatch(results, song, artist, durationSec) {
+    if (!Array.isArray(results)) return null;
+    let best = null;
+    for (const candidate of results) {
+      if (!candidate || !candidate.syncedLyrics || candidate.instrumental) continue;
+      const score = scoreMatch(candidate, song, artist, durationSec);
+      if (!best || score > best.score) best = { candidate, score };
+    }
+    return best && best.score >= 20 ? best.candidate : null;
+  }
+
+  async function lrclibFetch(pathAndQuery) {
+    // back off if lrclib is down or rate-limiting
+    if (Date.now() < lrclibCooldownUntil) return null;
+
+    try {
+      // lrclib allows this header + higher limits for identified clients
+      const res = await fetchWithTimeout(`https://lrclib.net/api/${pathAndQuery}`, {
+        headers: { "Lrclib-Client": LRCLIB_CLIENT }
+      });
+
+      if (res.status === 429 || res.status >= 500) {
+        const retryAfter = Number(res.headers.get("retry-after")) || 0;
+        lrclibCooldownUntil = Date.now() + Math.max(retryAfter * 1000, 30000);
+      } else if (res.ok || res.status === 404) {
+        lrclibCooldownUntil = 0;
+      }
+      return res;
+    } catch (error) {
+      // network/preflight failed, probably an outage
+      lrclibCooldownUntil = Date.now() + 30000;
+      throw error;
+    }
+  }
+
+  async function lrclibGet(song, artist, album, durationSec) {
+    const { primaryArtist } = cleanQueries(song, artist);
+    const params = new URLSearchParams({
+      track_name: song,
+      artist_name: primaryArtist || artist
+    });
+    if (album) params.set("album_name", album);
+    if (durationSec > 0) params.set("duration", String(Math.round(durationSec)));
+
+    const res = await lrclibFetch(`get?${params}`);
+    if (!res) return { kind: "error", skipped: true };
+    if (res.status === 404) return { kind: "miss" };
+    if (!res.ok) return { kind: "error", status: res.status };
+    const data = await res.json();
+    if (data?.instrumental) return { kind: "instrumental" };
+    if (!data?.syncedLyrics) return { kind: "miss" };
+    const lines = parseLRC(data.syncedLyrics);
+    return lines.length ? { kind: "ok", lines } : { kind: "miss" };
+  }
+
+  async function lrclibSearch(song, artist, durationSec) {
+    const { cleanSong, primaryArtist } = cleanQueries(song, artist);
+    const query = `${cleanSong || song} ${primaryArtist || artist}`.trim();
+    const params = new URLSearchParams({ q: query });
+
+    const res = await lrclibFetch(`search?${params}`);
+    if (!res) return { kind: "error", skipped: true };
+    if (!res.ok) return { kind: res.status === 404 ? "miss" : "error", status: res.status };
+    const results = await res.json();
+    const match = pickBestMatch(results, song, artist, durationSec);
+    if (!match) return { kind: "miss" };
+    const lines = parseLRC(match.syncedLyrics);
+    return lines.length ? { kind: "ok", lines } : { kind: "miss" };
+  }
+
+  async function lrcmuxGet(song, artist, album, durationSec) {
+    const { primaryArtist } = cleanQueries(song, artist);
+    const params = new URLSearchParams({
+      track_name: song,
+      artist_name: primaryArtist || artist
+    });
+    if (album) params.set("album_name", album);
+    if (durationSec > 0) params.set("duration", String(Math.round(durationSec)));
+
+    const res = await fetchWithTimeout(`https://api.lrcmux.dev/compat/lrclib/api/get?${params}`);
+    if (res.status === 404) return { kind: "miss" };
+    if (!res.ok) return { kind: "error", status: res.status };
+    const data = await res.json();
+    if (data?.instrumental) return { kind: "instrumental" };
+    if (!data?.syncedLyrics) return { kind: "miss" };
+    const lines = parseLRC(data.syncedLyrics);
+    return lines.length ? { kind: "ok", lines } : { kind: "miss" };
+  }
+
+  async function lrcmuxSearch(song, artist, durationSec) {
+    const { cleanSong, primaryArtist } = cleanQueries(song, artist);
+    const params = new URLSearchParams({
+      track_name: cleanSong || song,
+      artist_name: primaryArtist || artist
+    });
+
+    const res = await fetchWithTimeout(`https://api.lrcmux.dev/compat/lrclib/api/search?${params}`);
+    if (!res.ok) return { kind: res.status === 404 ? "miss" : "error", status: res.status };
+    const results = await res.json();
+    const match = pickBestMatch(results, song, artist, durationSec);
+    if (!match) return { kind: "miss" };
+    const lines = parseLRC(match.syncedLyrics);
+    return lines.length ? { kind: "ok", lines } : { kind: "miss" };
+  }
+
+  async function safeLyricsCall(call) {
+    try {
+      return await call();
+    } catch (error) {
+      return { kind: "error", error };
+    }
+  }
+
+  async function fetchSyncedLyrics(song, artist, album, durationSec) {
+    const duration = Math.max(0, Math.round(Number(durationSec) || 0));
+    const cacheKey = `${song}\u0000${artist}\u0000${album}\u0000${duration}`;
+    const cached = lyricsCache.get(cacheKey);
+    if (cached) return cached;
+
+    let instrumental = false;
+    let failed = false;
+
+    function remember(result) {
+      if (result.kind === "instrumental") instrumental = true;
+      if (result.kind === "error") failed = true;
+      return result;
+    }
+
+    function finalize(status, lines = [], source = null) {
+      const result = { status, lines, source };
+      // don't cache failures so the track can retry
+      if (status !== "error") {
+        if (lyricsCache.size >= LYRICS_CACHE_MAX) {
+          lyricsCache.delete(lyricsCache.keys().next().value);
+        }
+        lyricsCache.set(cacheKey, result);
+      }
+      return result;
+    }
+
+    // exact lrclib lookup first
+    const exact = remember(await safeLyricsCall(() => lrclibGet(song, artist, album, duration)));
+    if (exact.kind === "ok") return finalize("ok", exact.lines, "lrclib");
+
+    // lrclib search + lrcmux exact lookup run together
+    if (!failed) {
+      const [search, fallbackGet] = await Promise.all([
+        safeLyricsCall(() => lrclibSearch(song, artist, duration)),
+        safeLyricsCall(() => lrcmuxGet(song, artist, album, duration))
+      ]);
+      remember(search);
+      remember(fallbackGet);
+      if (search.kind === "ok") return finalize("ok", search.lines, "lrclib");
+      if (fallbackGet.kind === "ok") return finalize("ok", fallbackGet.lines, "lrcmux");
+    } else {
+      const fallbackGet = remember(await safeLyricsCall(() => lrcmuxGet(song, artist, album, duration)));
+      if (fallbackGet.kind === "ok") return finalize("ok", fallbackGet.lines, "lrcmux");
+    }
+
+    // last chance: lrcmux search
+    const fallbackSearch = remember(await safeLyricsCall(() => lrcmuxSearch(song, artist, duration)));
+    if (fallbackSearch.kind === "ok") return finalize("ok", fallbackSearch.lines, "lrcmux");
+
+    if (instrumental) return finalize("instrumental");
+    if (failed) return finalize("error");
+    return finalize("none");
   }
 
 
@@ -240,7 +461,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   function clearLyrics() {
     stopLyricsTicker();
+    clearTimeout(lyricsRetryTimer);
+    lyricsRetryTimer = null;
+    lyricsRetryCount = 0;
+    lyricsState = "idle";
+    lyricsRequestSeq++;
     syncedLyrics = [];
+    builtLyricsRef = null;
     lastLyricsTrackId = null;
     spotifyStartMs = null;
     lastActiveIdx = -1;
@@ -248,6 +475,71 @@ document.addEventListener("DOMContentLoaded", () => {
     lyricsStatus.textContent = "";
     lyricsSection.hidden = true;
     closeOverlay();
+  }
+
+  function scheduleLyricsRetry() {
+    clearTimeout(lyricsRetryTimer);
+    if (lyricsRetryCount >= 3) return false;
+    lyricsRetryCount++;
+    lyricsRetryTimer = setTimeout(() => {
+      lyricsRetryTimer = null;
+      if (lyricsState !== "error" || !currentTrack.id) return;
+      startLyricsFetch(true);
+    }, 15000 * lyricsRetryCount);
+    return true;
+  }
+
+  function startLyricsFetch(isRetry = false) {
+    const requestId = ++lyricsRequestSeq;
+    clearTimeout(lyricsRetryTimer);
+    lyricsRetryTimer = null;
+    lyricsState = "loading";
+    syncedLyrics = [];
+    builtLyricsRef = null;
+    lastActiveIdx = -1;
+    stopLyricsTicker();
+    lyricsSection.hidden = false;
+    lyricsContainer.innerHTML = "";
+    lyricsStatus.textContent = isRetry ? "Retrying lyrics…" : "Loading lyrics…";
+    if (!overlay.hidden) renderOverlayLyrics(-1);
+
+    fetchSyncedLyrics(
+      currentTrack.song,
+      currentTrack.artist,
+      currentTrack.album,
+      currentTrack.duration
+    ).then(result => {
+      if (requestId !== lyricsRequestSeq) return;
+
+      if (result.lines && result.lines.length) {
+        syncedLyrics = result.lines;
+        lyricsState = "ok";
+        lyricsRetryCount = 0;
+        lyricsStatus.textContent = "";
+        startLyricsTicker();
+      } else if (result.status === "instrumental") {
+        lyricsState = "instrumental";
+        lyricsStatus.textContent = "Instrumental track — no lyrics";
+      } else if (result.status === "none") {
+        lyricsState = "none";
+        lyricsStatus.textContent = "No synced lyrics available for this track";
+      } else {
+        lyricsState = "error";
+        lyricsStatus.textContent = scheduleLyricsRetry()
+          ? "Couldn't load lyrics — retrying…"
+          : "Couldn't load lyrics right now";
+      }
+
+      if (!overlay.hidden) renderOverlayLyrics(-1);
+    }).catch(error => {
+      if (requestId !== lyricsRequestSeq) return;
+      lyricsState = "error";
+      lyricsStatus.textContent = scheduleLyricsRetry()
+        ? "Couldn't load lyrics — retrying…"
+        : "Couldn't load lyrics right now";
+      if (!overlay.hidden) renderOverlayLyrics(-1);
+      console.warn("[Lyrics] unexpected error:", error);
+    });
   }
 
   // lyrics overlay
@@ -329,6 +621,9 @@ document.addEventListener("DOMContentLoaded", () => {
       ovCover.src = currentTrack.cover;
       ovBgArt.src = currentTrack.cover;
       if (coverChanged) restartAnim(ovCover, "swap");
+    } else {
+      ovCover.removeAttribute("src");
+      ovBgArt.removeAttribute("src");
     }
   }
 
@@ -426,8 +721,8 @@ document.addEventListener("DOMContentLoaded", () => {
     dot.style.background = statusColor[st] || statusColor.offline;
     statusText.textContent = statusLabel(st);
 
-    // hide blocks when offline
-    const showBlocks = (st === "online" || st === "dnd");
+    // idle/dnd users can still be listening
+    const showBlocks = st !== "offline";
     rpcGameBlock.hidden = !showBlocks;
     rpcSep.hidden = !showBlocks;
     rpcSpotifyBlock.hidden = !showBlocks;
@@ -437,49 +732,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // spotify
     if (showBlocks && data.spotify?.track_id) {
-      setText(spTrack, data.spotify.song || "—");
-      setText(spArtist, data.spotify.artist || "—");
-      setAlbumArt(data.spotify.album_art_url);
+      const spotify = data.spotify;
+      setText(spTrack, spotify.song || "—");
+      setText(spArtist, spotify.artist || "—");
+      setAlbumArt(spotify.album_art_url);
+
+      const start = spotify.timestamps?.start ?? null;
+      const end = spotify.timestamps?.end ?? null;
+      const duration = start != null && end != null && end > start
+        ? Math.round((end - start) / 1000)
+        : 0;
+
       currentTrack = {
-        song: data.spotify.song || "",
-        artist: data.spotify.artist || "",
-        cover: data.spotify.album_art_url || null
+        id: spotify.track_id,
+        song: spotify.song || "",
+        artist: spotify.artist || "",
+        album: spotify.album || "",
+        cover: spotify.album_art_url || null,
+        duration
       };
       setPlayable(true);
       if (!overlay.hidden) updateOverlayTrack();
+
       // lyrics sync
-      spotifyStartMs = data.spotify.timestamps?.start ?? null;
+      spotifyStartMs = start;
       if (spotifyStartMs == null) {
         clearLyrics();
-      } else if (data.spotify.track_id !== lastLyricsTrackId) {
-        lastLyricsTrackId = data.spotify.track_id;
-        lyricsSection.hidden = false;
-        lyricsStatus.textContent = "Loading lyrics…";
-        lyricsContainer.innerHTML = "";
-        stopLyricsTicker();
-        const fetchTrackId = data.spotify.track_id;
-        fetchSyncedLyrics(
-          data.spotify.song || "",
-          data.spotify.artist || ""
-        ).then(lyrics => {
-          // song changed mid-fetch
-          if (fetchTrackId !== lastLyricsTrackId) return;
-          syncedLyrics = lyrics;
-          if (lyrics.length) {
-            lyricsStatus.textContent = "";
-            lyricsContainer.innerHTML = "";
-            startLyricsTicker();
-          } else {
-            lyricsStatus.textContent = "No synced lyrics available for this track";
-          }
-          if (!overlay.hidden) renderOverlayLyrics(-1);
-        });
+      } else if (spotify.track_id !== lastLyricsTrackId) {
+        lastLyricsTrackId = spotify.track_id;
+        lyricsRetryCount = 0;
+        startLyricsFetch();
       }
     } else {
       setText(spTrack, "Not listening to anything right now");
       setText(spArtist, "—");
       setAlbumArt(null);
-      currentTrack = { song: "", artist: "", cover: null };
+      currentTrack = { id: "", song: "", artist: "", album: "", cover: null, duration: 0 };
       setPlayable(false);
       clearLyrics();
     }
@@ -512,7 +800,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setText(spTrack, "Not listening to anything right now");
     setText(spArtist, "—");
     setAlbumArt(null);
-    currentTrack = { song: "", artist: "", cover: null };
+    currentTrack = { id: "", song: "", artist: "", album: "", cover: null, duration: 0 };
     setPlayable(false);
     clearLyrics();
   }

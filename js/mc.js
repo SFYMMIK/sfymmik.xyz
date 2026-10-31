@@ -29,6 +29,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (initialized) return;
     initialized = true;
 
+    // retry when the card is reopened
+    mcNicknameEl.textContent = "Loading...";
+    mcViewerContainer.textContent = "";
+
     try {
       const response = await fetch(MINETOOLS_API);
       if (!response.ok) throw new Error("Failed to fetch MC profile");
@@ -82,9 +86,10 @@ document.addEventListener("DOMContentLoaded", () => {
       viewer.animation = new skinview3d.WalkingAnimation();
       viewer.autoRotate = true;
     } catch (err) {
+      initialized = false;
       console.error("MC Stats Error:", err);
-      mcNicknameEl.textContent = "Error loading";
-      mcViewerContainer.textContent = err.message;
+      mcNicknameEl.textContent = "Couldn't load skin";
+      mcViewerContainer.textContent = "Close and reopen to retry";
     }
   }
 
